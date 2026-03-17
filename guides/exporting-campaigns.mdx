@@ -1,0 +1,60 @@
+---
+title: "Exporting campaigns"
+description: "Export a campaign as a .redeye file for archiving, sharing with the Blue Team, or transferring between RedEye instances."
+---
+
+RedEye can export a campaign as a `.redeye` database file. The exported file can be re-imported into any RedEye instance using the [.redeye File upload option](/guides/uploading-campaigns).
+
+## Exporting a campaign
+
+<Steps>
+  <Step title="Open the campaign card menu">
+    On the campaign cards screen, click the **More** icon on the campaign you want to export.
+  </Step>
+  <Step title="Click Export">
+    Select **Export** from the menu.
+  </Step>
+  <Step title="Configure anonymization options">
+    Choose which data to remove or replace before export (see below).
+  </Step>
+  <Step title="Download the file">
+    RedEye generates and downloads the `.redeye` file.
+  </Step>
+</Steps>
+
+## Anonymization options
+
+Before exporting, you can anonymize sensitive data. Each option is independent and can be combined:
+
+| Option | Description |
+|---|---|
+| `removeHidden` | Exclude beacons, hosts, and servers that have been hidden |
+| `removeKeystrokes` | Strip keystroke log data from the export |
+| `removePasswordsHashes` | Remove captured passwords and password hashes |
+| `removeScreenshots` | Exclude screenshots captured during the campaign |
+| `replaceDomainsAndIps` | Replace domain names and IP addresses with anonymized values |
+| `replaceHostnames` | Replace hostnames with anonymized values |
+| `replaceUsernames` | Replace usernames with anonymized values |
+| `findReplace` | Apply custom find-and-replace substitutions to the exported data |
+
+<Warning>
+  Anonymization is applied at export time and cannot be undone on the exported file. Review your selections carefully before exporting.
+</Warning>
+
+## Blue Team handoff
+
+To hand off campaign data to the Blue Team:
+
+1. Export the campaign as a `.redeye` file with appropriate anonymization applied.
+2. Copy the RedEye binary along with the `campaigns/` folder containing the `.redeye` files.
+3. Provide these to the Blue Team so they can run RedEye locally and review the campaign data.
+
+## Redacted Screenshot Mode
+
+If you need to take screenshots of RedEye for documentation or reporting without exposing sensitive text in the UI, enable **Redacted Screenshot Mode** in the Settings Modal.
+
+When this mode is active, RedEye makes all text in the interface unreadable, allowing you to capture screenshots safely.
+
+<Note>
+  Redacted Screenshot Mode only affects the on-screen display. It does not modify the underlying campaign data or the exported `.redeye` file.
+</Note>

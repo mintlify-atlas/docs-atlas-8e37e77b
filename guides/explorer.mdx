@@ -1,0 +1,79 @@
+---
+title: "Explorer"
+description: "Navigate campaign data using the Explorer panel's Hosts, Operators, Comments, Beacons, and Command Types tabs."
+---
+
+After uploading and selecting a campaign, RedEye opens the Explorer panel. This panel provides five tabs for navigating the campaign data.
+
+## Hosts tab
+
+The Hosts tab displays the different servers linked to the campaign, including the Cobalt Strike server. Select a host to see all commands executed by beacons on that server.
+
+### Changing host color and shape
+
+To change how a host appears in the graph, select the host and then click the **Details Tab**. You can set a custom color and shape for the host node.
+
+Available colors: `default`, `forest`, `gold`, `green`, `indigo`, `lime`, `orange`, `red`, `rose`, `turquoise`, `vermilion`, `violet`
+
+## Operators tab
+
+The Operators tab lists all operators associated with the campaign. For each operator, it shows:
+
+- Operator name
+- Number of beacons associated with the operator
+- Number of commands run by the operator
+
+## Comments tab
+
+The Comments tab displays all comments in the campaign, including multi-command comments. Available actions for each comment:
+
+<CardGroup cols={2}>
+  <Card title="Delete" icon="trash">
+    Remove a comment from the campaign.
+  </Card>
+  <Card title="Edit" icon="pencil">
+    Modify the comment text or add and remove tags.
+  </Card>
+  <Card title="Reply" icon="reply">
+    Add a reply to an existing comment.
+  </Card>
+  <Card title="Favorite" icon="star">
+    Mark a comment as a favorite for use in presentations.
+  </Card>
+</CardGroup>
+
+## Beacons tab
+
+The Beacons tab lists all beacons in the campaign along with the total number of commands each beacon executed. Beacons that have associated tags display icons indicating the tag type, such as:
+
+- Privilege Escalation
+- Goldenticket
+- jump
+- elevate
+
+### Viewing beacon details
+
+Select a beacon from the list to view detailed information:
+
+- Commands executed by the beacon
+- Associated operators
+- Comments linked to the beacon
+- Beacon metadata
+
+### Changing beacon color and shape
+
+To change how a beacon appears in the graph, select the beacon and then click the **Details Tab**. You can set a custom color and shape for the beacon node.
+
+#### Expanding raw logs
+
+After selecting a beacon, you can expand individual commands to view the raw log output.
+
+## Command Types tab
+
+The Command Types tab lists every distinct command type that was executed across all beacons in the campaign, along with a count of how many times each command was run.
+
+Select a command type from the list to:
+
+- View the raw logs for each execution of that command
+- See associated MITRE ATT&CK technique tags
+- Copy the log text to the clipboard

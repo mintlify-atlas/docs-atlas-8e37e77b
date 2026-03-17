@@ -1,0 +1,927 @@
+---
+title: "Types"
+description: "Complete reference for all GraphQL types, input types, and enums in the RedEye schema."
+---
+
+This page documents every type, input type, and enum defined in the RedEye GraphQL schema.
+
+---
+
+## Object types
+
+### `Campaign`
+
+Represents a RedEye campaign — a collection of C2 servers, beacons, and associated logs.
+
+<ResponseField name="id" type="String!">
+  Unique campaign identifier.
+</ResponseField>
+
+<ResponseField name="name" type="String!">
+  Display name of the campaign.
+</ResponseField>
+
+<ResponseField name="beaconCount" type="Int!">
+  Total number of beacons in the campaign.
+</ResponseField>
+
+<ResponseField name="commandCount" type="Int!">
+  Total number of commands across all beacons.
+</ResponseField>
+
+<ResponseField name="annotationCount" type="Int!">
+  Total number of analyst annotations.
+</ResponseField>
+
+<ResponseField name="computerCount" type="Int!">
+  Total number of computers (hosts) observed.
+</ResponseField>
+
+<ResponseField name="serverCount" type="Int!">
+  Total number of C2 servers.
+</ResponseField>
+
+<ResponseField name="parsingStatus" type="ParsingStatus!">
+  Current state of log file parsing. See [`ParsingStatus`](#parsingstatus).
+</ResponseField>
+
+<ResponseField name="firstLogTime" type="DateTime">
+  Timestamp of the earliest log entry.
+</ResponseField>
+
+<ResponseField name="lastLogTime" type="DateTime">
+  Timestamp of the most recent log entry.
+</ResponseField>
+
+<ResponseField name="migrationError" type="Boolean!">
+  Whether a database migration error occurred for this campaign.
+</ResponseField>
+
+<ResponseField name="creator" type="GlobalOperator">
+  The operator who created the campaign.
+</ResponseField>
+
+<ResponseField name="lastOpenedBy" type="GlobalOperator">
+  The operator who most recently opened the campaign.
+</ResponseField>
+
+<ResponseField name="parsers" type="[CampaignParser!]">
+  The parsers configured for this campaign.
+</ResponseField>
+
+---
+
+### `Beacon`
+
+Represents a C2 beacon (implant) running on a compromised host.
+
+<ResponseField name="id" type="String!">
+  Unique beacon identifier.
+</ResponseField>
+
+<ResponseField name="beaconName" type="String!">
+  The name Cobalt Strike assigns to the beacon, or the server name. Unique within a server but not necessarily across a campaign.
+</ResponseField>
+
+<ResponseField name="displayName" type="String">
+  Custom display name set by an analyst.
+</ResponseField>
+
+<ResponseField name="serverId" type="String!">
+  ID of the C2 server this beacon is registered with.
+</ResponseField>
+
+<ResponseField name="hidden" type="Boolean">
+  Whether the beacon is hidden in the UI.
+</ResponseField>
+
+<ResponseField name="commandsCount" type="Float!">
+  Number of commands run through this beacon.
+</ResponseField>
+
+<ResponseField name="commentsCount" type="Float!">
+  Number of annotations on this beacon's commands.
+</ResponseField>
+
+<ResponseField name="logsCount" type="Float!">
+  Number of raw log entries for this beacon.
+</ResponseField>
+
+<ResponseField name="host" type="Host">
+  The host this beacon is running on.
+</ResponseField>
+
+<ResponseField name="meta" type="[BeaconMeta!]!">
+  Metadata extracted from the beacon's log lines (IP, PID, process, timing, etc.).
+</ResponseField>
+
+<ResponseField name="mitreTechniques" type="[MitreTechniques]">
+  MITRE ATT&CK techniques observed via this beacon.
+</ResponseField>
+
+---
+
+### `BeaconMeta`
+
+Metadata derived from beacon log `METADATA` lines. A beacon may have multiple metadata records if its state changed over time.
+
+<ResponseField name="id" type="String!">
+  Unique identifier.
+</ResponseField>
+
+<ResponseField name="type" type="BeaconType">
+  Communication protocol used. See [`BeaconType`](#beacontype).
+</ResponseField>
+
+<ResponseField name="startTime" type="DateTime">
+  Time the beacon first appeared.
+</ResponseField>
+
+<ResponseField name="endTime" type="DateTime">
+  Time the last command was run.
+</ResponseField>
+
+<ResponseField name="ip" type="String">
+  IP address of the host at the time of the metadata line.
+</ResponseField>
+
+<ResponseField name="port" type="Float">
+  Port used by the beacon.
+</ResponseField>
+
+<ResponseField name="pid" type="Int">
+  Process identifier the beacon is running under.
+</ResponseField>
+
+<ResponseField name="process" type="String">
+  Process name the beacon is running under.
+</ResponseField>
+
+<ResponseField name="username" type="String">
+  Username the beacon is running under.
+</ResponseField>
+
+<ResponseField name="color" type="NodeColors">
+  Node color in the graph visualization. See [`NodeColors`](#nodecolors).
+</ResponseField>
+
+<ResponseField name="shape" type="Shapes">
+  Node shape in the graph visualization. See [`Shapes`](#shapes).
+</ResponseField>
+
+<ResponseField name="source" type="LogEntry">
+  The raw log line from which this metadata was extracted.
+</ResponseField>
+
+---
+
+### `Host`
+
+Represents a compromised host machine.
+
+<ResponseField name="id" type="String!">
+  Unique host identifier.
+</ResponseField>
+
+<ResponseField name="hostName" type="String!">
+  The hostname as reported in the logs.
+</ResponseField>
+
+<ResponseField name="displayName" type="String">
+  Custom display name set by an analyst.
+</ResponseField>
+
+<ResponseField name="hidden" type="Boolean">
+  Whether the host is hidden in the UI.
+</ResponseField>
+
+<ResponseField name="cobaltStrikeServer" type="Boolean">
+  Whether this host is also acting as a Cobalt Strike team server.
+</ResponseField>
+
+<ResponseField name="commandsCount" type="Float!">
+  Total commands run on this host.
+</ResponseField>
+
+<ResponseField name="commentCount" type="Float!">
+  Number of annotations related to this host.
+</ResponseField>
+
+<ResponseField name="beaconIds" type="[String!]!">
+  IDs of beacons running on this host.
+</ResponseField>
+
+<ResponseField name="meta" type="[HostMeta!]!">
+  Host metadata records.
+</ResponseField>
+
+---
+
+### `HostMeta`
+
+Metadata about a host, extracted from log files.
+
+<ResponseField name="id" type="String!">
+  Unique identifier.
+</ResponseField>
+
+<ResponseField name="ip" type="String">
+  IP address of the host.
+</ResponseField>
+
+<ResponseField name="os" type="String">
+  Operating system name.
+</ResponseField>
+
+<ResponseField name="osVersion" type="String">
+  Operating system version string.
+</ResponseField>
+
+<ResponseField name="type" type="String">
+  Host type descriptor.
+</ResponseField>
+
+<ResponseField name="color" type="NodeColors">
+  Node color in the graph visualization.
+</ResponseField>
+
+<ResponseField name="shape" type="Shapes">
+  Node shape in the graph visualization.
+</ResponseField>
+
+---
+
+### `Server`
+
+Represents a Cobalt Strike (or compatible) C2 server.
+
+<ResponseField name="id" type="String!">
+  Unique server identifier.
+</ResponseField>
+
+<ResponseField name="name" type="String!">
+  Server name as parsed from log files.
+</ResponseField>
+
+<ResponseField name="displayName" type="String">
+  Custom display name set by an analyst.
+</ResponseField>
+
+<ResponseField name="hidden" type="Boolean">
+  Whether the server is hidden in the UI.
+</ResponseField>
+
+<ResponseField name="beaconCount" type="Float!">
+  Number of beacons registered with this server.
+</ResponseField>
+
+<ResponseField name="commandsCount" type="Float!">
+  Total commands issued from this server.
+</ResponseField>
+
+<ResponseField name="commentCount" type="Float!">
+  Number of annotations associated with this server.
+</ResponseField>
+
+<ResponseField name="logsCount" type="Float!">
+  Number of log entries for this server.
+</ResponseField>
+
+<ResponseField name="meta" type="ServerMeta!">
+  Server metadata (type, color, shape).
+</ResponseField>
+
+<ResponseField name="beacons" type="[Beacon!]!">
+  All beacons registered with this server.
+</ResponseField>
+
+---
+
+### `ServerMeta`
+
+Visualization and type metadata for a server.
+
+<ResponseField name="id" type="String!">
+  Unique identifier.
+</ResponseField>
+
+<ResponseField name="type" type="ServerType!">
+  Communication type used by the server. See [`ServerType`](#servertype).
+</ResponseField>
+
+<ResponseField name="color" type="NodeColors">
+  Node color in the graph visualization.
+</ResponseField>
+
+<ResponseField name="shape" type="Shapes">
+  Node shape in the graph visualization.
+</ResponseField>
+
+---
+
+### `Operator`
+
+Represents a human operator who ran commands during the campaign.
+
+<ResponseField name="id" type="String!">
+  Unique operator identifier.
+</ResponseField>
+
+<ResponseField name="name" type="String!">
+  Operator username as it appears in the logs.
+</ResponseField>
+
+<ResponseField name="startTime" type="DateTime">
+  Timestamp of the first command run by this operator.
+</ResponseField>
+
+<ResponseField name="endTime" type="DateTime">
+  Timestamp of the last command run by this operator.
+</ResponseField>
+
+<ResponseField name="commentsCount" type="Float!">
+  Number of annotations made by this operator.
+</ResponseField>
+
+<ResponseField name="beaconIds" type="[String!]!">
+  IDs of beacons this operator issued commands through.
+</ResponseField>
+
+<ResponseField name="logIds" type="[String!]!">
+  IDs of log entries attributed to this operator.
+</ResponseField>
+
+---
+
+### `GlobalOperator`
+
+A RedEye system-level operator (used for authentication in Red Team mode).
+
+<ResponseField name="id" type="String!">
+  Unique identifier.
+</ResponseField>
+
+<ResponseField name="name" type="String!">
+  Operator username.
+</ResponseField>
+
+---
+
+### `Annotation`
+
+An analyst-created note attached to one or more commands via a command group.
+
+<ResponseField name="id" type="String!">
+  Unique annotation identifier.
+</ResponseField>
+
+<ResponseField name="text" type="String!">
+  The annotation body text.
+</ResponseField>
+
+<ResponseField name="user" type="String!">
+  Username of the analyst who created the annotation.
+</ResponseField>
+
+<ResponseField name="date" type="DateTime!">
+  When the annotation was created.
+</ResponseField>
+
+<ResponseField name="favorite" type="Boolean!">
+  Whether this annotation is marked as a favorite.
+</ResponseField>
+
+<ResponseField name="generation" type="GenerationType!">
+  How the annotation was created. See [`GenerationType`](#generationtype).
+</ResponseField>
+
+<ResponseField name="commandIds" type="[String]">
+  IDs of the commands this annotation is attached to.
+</ResponseField>
+
+<ResponseField name="commandGroupId" type="String">
+  ID of the command group this annotation belongs to.
+</ResponseField>
+
+<ResponseField name="commandCount" type="Float!">
+  Number of commands in the associated command group.
+</ResponseField>
+
+<ResponseField name="tagCount" type="Float!">
+  Number of tags on this annotation.
+</ResponseField>
+
+<ResponseField name="tags" type="[Tag!]">
+  Tags attached to this annotation.
+</ResponseField>
+
+<ResponseField name="beaconIdFromFirstCommand" type="String">
+  ID of the beacon associated with the first command in the group.
+</ResponseField>
+
+---
+
+### `Command`
+
+Represents a single command executed through a beacon.
+
+<ResponseField name="id" type="String!">
+  Unique command identifier.
+</ResponseField>
+
+<ResponseField name="inputText" type="String!">
+  The text of the command as typed by the operator.
+</ResponseField>
+
+<ResponseField name="commandFailed" type="Boolean!">
+  Whether the command failed to execute.
+</ResponseField>
+
+<ResponseField name="commentsCount" type="Float!">
+  Number of annotations on this command.
+</ResponseField>
+
+<ResponseField name="attackIds" type="[String!]">
+  ATT&CK technique IDs associated with this command.
+</ResponseField>
+
+<ResponseField name="mitreTechniques" type="[MitreTechniques]">
+  High-level MITRE technique categories. See [`MitreTechniques`](#mitretechniques).
+</ResponseField>
+
+<ResponseField name="beacon" type="Beacon!">
+  The beacon this command was run through.
+</ResponseField>
+
+<ResponseField name="operator" type="Operator">
+  The operator who ran the command.
+</ResponseField>
+
+<ResponseField name="input" type="LogEntry!">
+  The log entry representing the command input line.
+</ResponseField>
+
+<ResponseField name="output" type="[LogEntry!]!">
+  Log entries representing the command output.
+</ResponseField>
+
+<ResponseField name="commandGroups" type="[CommandGroup!]!">
+  Command groups this command belongs to.
+</ResponseField>
+
+---
+
+### `CommandGroup`
+
+A grouping of one or more commands that an analyst has annotated together.
+
+<ResponseField name="id" type="String!">
+  Unique command group identifier.
+</ResponseField>
+
+<ResponseField name="commandIds" type="[String!]!">
+  IDs of the commands in this group.
+</ResponseField>
+
+<ResponseField name="generation" type="GenerationType!">
+  How the group was created. See [`GenerationType`](#generationtype).
+</ResponseField>
+
+<ResponseField name="commentCount" type="Float!">
+  Number of annotations on this command group.
+</ResponseField>
+
+<ResponseField name="annotations" type="[Annotation!]!">
+  All annotations attached to this group.
+</ResponseField>
+
+<ResponseField name="commands" type="[Command!]!">
+  Full command objects for each command in the group.
+</ResponseField>
+
+---
+
+### `Link`
+
+A directional connection between two beacons representing a pivot or relay relationship.
+
+<ResponseField name="id" type="String!">
+  Unique link identifier.
+</ResponseField>
+
+<ResponseField name="name" type="String">
+  Display name of the link.
+</ResponseField>
+
+<ResponseField name="manual" type="Boolean!">
+  Whether this link was manually created by an analyst (as opposed to being parsed from logs).
+</ResponseField>
+
+<ResponseField name="startTime" type="DateTime">
+  When the link became active.
+</ResponseField>
+
+<ResponseField name="endTime" type="DateTime">
+  When the link became inactive.
+</ResponseField>
+
+<ResponseField name="origin" type="Beacon">
+  The source beacon of the link.
+</ResponseField>
+
+<ResponseField name="destination" type="Beacon">
+  The target beacon of the link.
+</ResponseField>
+
+<ResponseField name="command" type="Command">
+  The command that created or is associated with this link.
+</ResponseField>
+
+---
+
+### `LogEntry`
+
+A single line (or multi-line block) from a C2 log file.
+
+<ResponseField name="id" type="String!">
+  Unique log entry identifier.
+</ResponseField>
+
+<ResponseField name="blob" type="String!">
+  The raw text content of the log entry.
+</ResponseField>
+
+<ResponseField name="logType" type="LogType!">
+  The category of log file this entry came from. See [`LogType`](#logtype).
+</ResponseField>
+
+<ResponseField name="lineType" type="BeaconLineType">
+  The semantic type of this line within a beacon log. See [`BeaconLineType`](#beaconlinetype).
+</ResponseField>
+
+<ResponseField name="lineNumber" type="Float!">
+  Line number within the source log file.
+</ResponseField>
+
+<ResponseField name="dateTime" type="DateTime">
+  Timestamp parsed from the log line.
+</ResponseField>
+
+<ResponseField name="filepath" type="String">
+  Path to the source log file.
+</ResponseField>
+
+<ResponseField name="beacon" type="Beacon">
+  The beacon this log entry is associated with.
+</ResponseField>
+
+<ResponseField name="command" type="Command">
+  The command this log entry is associated with (if any).
+</ResponseField>
+
+---
+
+### `Tag`
+
+A short label attached to an annotation.
+
+<ResponseField name="id" type="String!">
+  Unique tag identifier.
+</ResponseField>
+
+<ResponseField name="text" type="String!">
+  The tag text (e.g. `"LateralMovement"`).
+</ResponseField>
+
+<ResponseField name="commandsCount" type="Float!">
+  Number of commands associated with annotations that have this tag.
+</ResponseField>
+
+<ResponseField name="commentCount" type="Float!">
+  Number of annotations with this tag.
+</ResponseField>
+
+---
+
+### `File`
+
+A file that was uploaded to or downloaded from a target host.
+
+<ResponseField name="id" type="String!">
+  Unique file identifier.
+</ResponseField>
+
+<ResponseField name="fileName" type="String!">
+  Name of the file.
+</ResponseField>
+
+<ResponseField name="fileFlag" type="FileFlag!">
+  Whether the file was uploaded or downloaded. See [`FileFlag`](#fileflag).
+</ResponseField>
+
+<ResponseField name="location" type="String!">
+  Path or location of the file on the target system.
+</ResponseField>
+
+<ResponseField name="dateTime" type="DateTime!">
+  Timestamp of the file operation.
+</ResponseField>
+
+<ResponseField name="md5" type="String">
+  MD5 hash of the file (auto-generated for uploads).
+</ResponseField>
+
+---
+
+### `NonHidableEntities`
+
+The set of entities that cannot be hidden because they are referenced by visible entities.
+
+<ResponseField name="beacons" type="[String!]">
+  IDs of beacons that cannot be hidden.
+</ResponseField>
+
+<ResponseField name="hosts" type="[String!]">
+  IDs of hosts that cannot be hidden.
+</ResponseField>
+
+<ResponseField name="servers" type="[String!]">
+  IDs of servers that cannot be hidden.
+</ResponseField>
+
+---
+
+## Input types
+
+### `AnonymizationInput`
+
+Options for the `anonymizeCampaign` mutation. All fields are optional and default to `false` / empty.
+
+<ParamField path="replaceHostnames" type="Boolean">
+  Replace all hostname strings with anonymized placeholders. Defaults to `false`.
+</ParamField>
+
+<ParamField path="replaceUsernames" type="Boolean">
+  Replace all username strings. Defaults to `false`.
+</ParamField>
+
+<ParamField path="replaceDomainsAndIps" type="Boolean">
+  Replace all domain names and IP addresses. Defaults to `false`.
+</ParamField>
+
+<ParamField path="removePasswordsHashes" type="Boolean">
+  Strip password and hash strings from log content. Defaults to `false`.
+</ParamField>
+
+<ParamField path="removeScreenshots" type="Boolean">
+  Exclude screenshot images from the export. Defaults to `false`.
+</ParamField>
+
+<ParamField path="removeKeystrokes" type="Boolean">
+  Exclude keystroke log files from the export. Defaults to `false`.
+</ParamField>
+
+<ParamField path="removeHidden" type="Boolean">
+  Exclude hidden beacons, hosts, and servers from the export. Defaults to `false`.
+</ParamField>
+
+<ParamField path="findReplace" type="[FindReplaceInput!]">
+  List of custom find-and-replace substitutions. Defaults to `[]`.
+</ParamField>
+
+---
+
+### `FindReplaceInput`
+
+A single find-and-replace rule for use in `AnonymizationInput.findReplace`.
+
+<ParamField path="find" type="String">
+  The string to search for. Defaults to `""`.
+</ParamField>
+
+<ParamField path="replace" type="String">
+  The string to substitute. Defaults to `""`.
+</ParamField>
+
+---
+
+### `SortType`
+
+Sort configuration for command queries.
+
+<ParamField path="sortBy" type="SortOption">
+  The property to sort on: `name`, `text`, or `time`. Defaults to `name`.
+</ParamField>
+
+<ParamField path="direction" type="SortDirection">
+  Sort direction: `ASC` or `DESC`. Defaults to `ASC`.
+</ParamField>
+
+---
+
+### `SortTypeComments`
+
+Sort configuration for command group queries.
+
+<ParamField path="sortBy" type="SortOptionComments">
+  Sort by `fav`, `time`, or `user`. Defaults to `time`.
+</ParamField>
+
+<ParamField path="direction" type="SortDirection">
+  Sort direction: `ASC` or `DESC`. Defaults to `ASC`.
+</ParamField>
+
+---
+
+## Enums
+
+### `BeaconType`
+
+The communication protocol used by a beacon.
+
+| Value | Description |
+|-------|-------------|
+| `dns` | DNS-based C2 communication |
+| `http` | Unencrypted HTTP C2 |
+| `https` | TLS-encrypted HTTPS C2 |
+| `smb` | SMB named-pipe pivot beacon |
+
+---
+
+### `BeaconLineType`
+
+The semantic type of a line within a beacon log file.
+
+| Value | Description |
+|-------|-------------|
+| `CHECKIN` | Beacon check-in event |
+| `ERROR` | Error output from a command |
+| `INDICATOR` | Indicator of compromise log line |
+| `INPUT` | Operator command input |
+| `METADATA` | Beacon metadata line (IP, PID, user, etc.) |
+| `MODE` | Mode change (e.g. sleep interval) |
+| `OUTPUT` | Command output returned by beacon |
+| `TASK` | Task queued by operator |
+
+---
+
+### `LogType`
+
+The category of log file, based on filename conventions.
+
+| Value | Description |
+|-------|-------------|
+| `BEACON` | Standard beacon interaction log |
+| `DOWNLOAD` | File download log |
+| `EVENT` | Team server event log |
+| `KEYSTROKES` | Keystroke capture log |
+| `UNKNOWN` | Unrecognized log file |
+| `WEBLOG` | Web server access log |
+
+---
+
+### `ParsingStatus`
+
+The current state of log file parsing for a campaign.
+
+| Value | Description |
+|-------|-------------|
+| `LIVE_PARSING_CS` | Cobalt Strike live-connect parsing in progress |
+| `NOT_READY_TO_PARSE` | Campaign has no servers with logs ready |
+| `PARSING_COMPLETED` | Parsing finished successfully |
+| `PARSING_FAILURE` | Parsing encountered an unrecoverable error |
+| `PARSING_IN_PROGRESS` | Parsing is actively running |
+| `PARSING_NOT_STARTED` | Servers are present but parsing has not been triggered |
+| `PARSING_QUEUED` | Parsing has been requested and is waiting to start |
+
+---
+
+### `NodeColors`
+
+Available colors for beacon, host, and server nodes in the graph visualization.
+
+| Value | Description |
+|-------|-------------|
+| `default` | Default theme color |
+| `forest` | Dark green |
+| `gold` | Gold/amber |
+| `green` | Bright green |
+| `indigo` | Indigo blue |
+| `lime` | Lime green |
+| `orange` | Orange |
+| `red` | Red |
+| `rose` | Rose/pink |
+| `turquoise` | Turquoise |
+| `vermilion` | Vermilion/red-orange |
+| `violet` | Violet/purple |
+
+---
+
+### `Shapes`
+
+Available shapes for beacon, host, and server nodes in the graph visualization.
+
+| Value |
+|-------|
+| `circle` |
+| `diamond` |
+| `hexagonDown` |
+| `hexagonUp` |
+| `pentagonDown` |
+| `pentagonUp` |
+| `square` |
+| `triangleDown` |
+| `triangleUp` |
+
+---
+
+### `MitreTechniques`
+
+High-level MITRE ATT&CK technique categories that can be associated with commands and beacons.
+
+| Value | ATT&CK Category |
+|-------|-----------------|
+| `Collection` | TA0009 — Collection |
+| `CommandAndControl` | TA0011 — Command and Control |
+| `CredentialAccess` | TA0006 — Credential Access |
+| `DefenseEvasion` | TA0005 — Defense Evasion |
+| `Discovery` | TA0007 — Discovery |
+| `Execution` | TA0002 — Execution |
+| `Exfiltration` | TA0010 — Exfiltration |
+| `GoldenTicket` | Kerberos Golden Ticket technique |
+| `Impact` | TA0040 — Impact |
+| `InitialAccess` | TA0001 — Initial Access |
+| `LateralMovement` | TA0008 — Lateral Movement |
+| `Persistence` | TA0003 — Persistence |
+| `PrivilegeEscalation` | TA0004 — Privilege Escalation |
+| `Reconnaissance` | TA0043 — Reconnaissance |
+| `ResourceDevelopment` | TA0042 — Resource Development |
+
+---
+
+### `GenerationType`
+
+How an annotation or command group was created.
+
+| Value | Description |
+|-------|-------------|
+| `MANUAL` | Created manually by an analyst |
+| `PROCEDURAL` | Auto-generated by the system |
+| `PROCEDURAL_MODIFIED` | Auto-generated and then modified by an analyst |
+
+---
+
+### `FileFlag`
+
+Designates the direction of a file operation.
+
+| Value | Description |
+|-------|-------------|
+| `DOWNLOAD` | File was taken from a target host |
+| `UPLOAD` | File was placed on or replaced on a target host |
+
+---
+
+### `ServerType`
+
+The communication protocol used by a C2 server.
+
+| Value | Description |
+|-------|-------------|
+| `dns` | DNS-based listener |
+| `http` | HTTP listener |
+| `https` | HTTPS listener |
+| `smb` | SMB named-pipe listener |
+
+---
+
+### `SortDirection`
+
+| Value | Description |
+|-------|-------------|
+| `ASC` | Ascending order |
+| `DESC` | Descending order |
+
+---
+
+### `SortOption`
+
+Sort property for command queries.
+
+| Value | Description |
+|-------|-------------|
+| `name` | Sort by name |
+| `text` | Sort by text content |
+| `time` | Sort by timestamp |
+
+---
+
+### `SortOptionComments`
+
+Sort property for command group / annotation queries.
+
+| Value | Description |
+|-------|-------------|
+| `fav` | Sort by favorite status |
+| `time` | Sort by timestamp |
+| `user` | Sort by operator username |

@@ -1,0 +1,205 @@
+---
+title: "Beacons and hosts"
+description: "The core data model in RedEye: beacons, hosts, servers, operators, and the links between them."
+---
+
+RedEye's data model is built around the relationships between C2 agents (beacons), the machines they run on (hosts), the teamservers that control them (servers), and the operators who issue commands.
+
+## Data model overview
+
+```
+Server (teamserver)
+  └── Beacon  ──────────────── Link ─────── Beacon
+        └── Host (target machine)              └── Host
+              └── Operator
+                    └── Command
+                          └── Annotation (comment + tags)
+```
+
+| Entity | Description |
+|---|---|
+| **Server** | The C2 teamserver that issues tasking to beacons |
+| **Beacon** | A C2 agent running on a target host |
+| **Host** | A target machine that has one or more beacons on it |
+| **Operator** | A Red Team member who ran commands through a beacon |
+| **Link** | A directional connection between two beacons (lateral movement path) |
+| **Command** | A single tasked command and its output, attributed to a beacon and operator |
+| **Annotation** | A comment (with optional tags) applied to one or more commands |
+
+---
+
+## Beacon
+
+A beacon is a C2 agent running on a target host. It is the primary unit of activity in RedEye.
+
+### Beacon fields
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | String | Unique identifier |
+| `beaconName` | String | The name Cobalt Strike (or other C2) assigns to the beacon. Unique to a server but not necessarily across a campaign. |
+| `displayName` | String | Optional custom display name set by an operator |
+| `commandsCount` | Float | Total commands executed through this beacon |
+| `commentsCount` | Float | Total annotations on this beacon's commands |
+| `hidden` | Boolean | Whether the beacon is hidden in the graph and Explorer |
+| `host` | Host | The host machine this beacon runs on |
+| `serverId` | String | ID of the C2 server controlling this beacon |
+| `meta` | BeaconMeta[] | One or more metadata snapshots (see below) |
+| `mitreTechniques` | MitreTechniques[] | MITRE ATT&CK techniques observed in this beacon's commands |
+
+### BeaconMeta fields
+
+Beacon metadata is extracted from metadata log lines and can have multiple entries over a beacon's lifetime.
+
+| Field | Type | Description |
+|---|---|---|
+| `startTime` | DateTime | When the beacon first appeared |
+| `endTime` | DateTime | When the last command was run |
+| `ip` | String | IP address of the host at the time of the metadata line |
+| `pid` | Int | Process ID the beacon is running under |
+| `port` | Float | Port used by the beacon |
+| `process` | String | Process name the beacon is injected into |
+| `username` | String | Windows username the beacon is running as |
+| `type` | BeaconType | Communication protocol (`dns`, `http`, `https`, `smb`) |
+| `color` | NodeColors | Graph node color (see [Node colors](#node-colors)) |
+| `shape` | Shapes | Graph node shape (see [Node shapes](#node-shapes)) |
+
+### Beacon communication types
+
+The `BeaconType` enum defines the protocol the beacon uses to communicate with its server:
+
+| Value | Protocol |
+|---|---|
+| `dns` | DNS |
+| `http` | HTTP |
+| `https` | HTTPS |
+| `smb` | SMB (peer-to-peer) |
+
+---
+
+## Host
+
+A host is a target machine. One host can have multiple beacons running on it simultaneously or at different times.
+
+### Host fields
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | String | Unique identifier |
+| `hostName` | String | Hostname of the machine |
+| `displayName` | String | Optional custom display name |
+| `beaconIds` | String[] | IDs of all beacons on this host |
+| `commandsCount` | Float | Total commands run across all beacons on this host |
+| `commentCount` | Float | Total annotations on this host's commands |
+| `hidden` | Boolean | Whether the host is hidden in the graph and Explorer |
+| `meta` | HostMeta[] | Metadata snapshots for the host |
+
+### HostMeta fields
+
+| Field | Type | Description |
+|---|---|---|
+| `ip` | String | IP address |
+| `os` | String | Operating system name |
+| `osVersion` | String | Operating system version |
+| `color` | NodeColors | Graph node color |
+| `shape` | Shapes | Graph node shape |
+| `type` | String | Host type classification |
+
+---
+
+## Server
+
+A server represents a C2 teamserver. Beacons reference their controlling server via `serverId`.
+
+### Server fields
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | String | Unique identifier |
+| `name` | String | Server name |
+| `displayName` | String | Optional custom display name |
+| `beaconCount` | Float | Number of beacons associated with this server |
+| `commandsCount` | Float | Total commands issued through this server |
+| `commentCount` | Float | Total annotations on this server's commands |
+| `hidden` | Boolean | Whether the server is hidden in the graph |
+| `meta` | ServerMeta | Server metadata (color, shape, type) |
+
+---
+
+## Operator
+
+An operator is a Red Team member who issued commands through one or more beacons during the engagement.
+
+### Operator fields
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | String | Unique identifier |
+| `name` | String | Operator username |
+| `beaconIds` | String[] | Beacons this operator issued commands through |
+| `logIds` | String[] | Log entries attributed to this operator |
+| `commentsCount` | Float | Number of annotations this operator added |
+| `startTime` | DateTime | Timestamp of the operator's first command |
+| `endTime` | DateTime | Timestamp of the operator's last command |
+
+---
+
+## Link
+
+A link represents a directional connection between two beacons, typically indicating lateral movement from one host to another.
+
+### Link fields
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | String | Unique identifier |
+| `origin` | Beacon | The source beacon |
+| `destination` | Beacon | The target beacon |
+| `startTime` | DateTime | When the link was first observed |
+| `endTime` | DateTime | When the link was last observed |
+| `manual` | Boolean | Whether this link was manually created by an operator |
+| `name` | String | Display name of the link |
+
+---
+
+## Node colors
+
+Both beacons and hosts can be assigned a color to aid visual grouping in the graph. Colors are set via the **Details** tab after selecting a node.
+
+Available values from the `NodeColors` enum:
+
+`default` · `forest` · `gold` · `green` · `indigo` · `lime` · `orange` · `red` · `rose` · `turquoise` · `vermilion` · `violet`
+
+## Node shapes
+
+Nodes can also be assigned a shape. Available values from the `Shapes` enum:
+
+| Value | Description |
+|---|---|
+| `circle` | Circle |
+| `diamond` | Diamond |
+| `hexagonDown` | Downward-pointing hexagon |
+| `hexagonUp` | Upward-pointing hexagon |
+| `pentagonDown` | Downward-pointing pentagon |
+| `pentagonUp` | Upward-pointing pentagon |
+| `square` | Square |
+| `triangleDown` | Downward-pointing triangle |
+| `triangleUp` | Upward-pointing triangle |
+
+## Hiding nodes
+
+Beacons, hosts, and servers can each be individually hidden. Hidden nodes are excluded from the graph, Explorer tabs, and command counts by default.
+
+To toggle visibility, use **Settings** > **Show Hidden Beacons, Hosts, and Servers**. You can also hide or show individual nodes from the Details panel of any selected node.
+
+<Info>
+  Some nodes cannot be hidden if doing so would disconnect the graph. The `nonHidableEntities` query returns the IDs of beacons, hosts, and servers that are currently non-hidable.
+</Info>
+
+## MITRE ATT&CK techniques
+
+RedEye maps commands to MITRE ATT&CK techniques. The `MitreTechniques` enum covers:
+
+`Collection` · `CommandAndControl` · `CredentialAccess` · `DefenseEvasion` · `Discovery` · `Execution` · `Exfiltration` · `GoldenTicket` · `Impact` · `InitialAccess` · `LateralMovement` · `Persistence` · `PrivilegeEscalation` · `Reconnaissance` · `ResourceDevelopment`
+
+Techniques are visible in the raw log view when expanding a command, and are surfaced in the Beacons tab as icons for notable tags like Privilege Escalation and Golden Ticket.

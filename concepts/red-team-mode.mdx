@@ -1,0 +1,137 @@
+---
+title: "Red Team mode"
+description: "Full-featured mode for uploading C2 logs, exploring data, annotating findings, and building presentations."
+---
+
+Red Team mode unlocks the complete RedEye feature set. It is password-protected and intended for use by the Red Team operators who ran the engagement.
+
+## What Red Team mode enables
+
+<CardGroup cols={2}>
+  <Card title="Upload C2 logs" icon="upload">
+    Import Cobalt Strike, Brute Ratel, or Sliver log folders directly into RedEye for parsing and visualization.
+  </Card>
+  <Card title="Explore campaign data" icon="chart-network">
+    Inspect beacons, hosts, operators, commands, and timelines through the interactive graph and Explorer tabs.
+  </Card>
+  <Card title="Annotate and tag" icon="tag">
+    Add comments and tags to individual commands or groups of commands, mark favorites, and reply to existing comments.
+  </Card>
+  <Card title="Create presentations" icon="presentation-screen">
+    Build slide-based presentations from tagged comments to walk stakeholders through the attack path.
+  </Card>
+  <Card title="Export campaigns" icon="file-export">
+    Export a curated campaign as a `.redeye` file for handoff to a Blue Team.
+  </Card>
+  <Card title="Anonymize data" icon="eye-slash">
+    Strip hostnames, usernames, IPs, domains, screenshots, keystrokes, and password hashes before exporting.
+  </Card>
+</CardGroup>
+
+## Starting Red Team mode
+
+<Tabs>
+  <Tab title="Binary">
+    Download the latest RedEye binary from the [Releases](https://github.com/cisagov/RedEye/releases) page, then run:
+
+    ```bash
+    ./RedEye --redTeam --password <your_password>
+    ```
+
+    The server starts on `http://127.0.0.1:4000` by default and opens your default browser automatically.
+
+    <Note>
+      You must provide `--password` when starting in Red Team mode. Without it, the server will not start in Red Team mode.
+    </Note>
+  </Tab>
+  <Tab title="Docker Compose">
+    1. Clone the repository.
+    2. Update the environment variables in `docker-compose.yml`.
+    3. Run:
+
+    ```bash
+    docker-compose -f docker-compose.yml up -d redeye-core
+    ```
+  </Tab>
+  <Tab title="Local dev">
+    Install prerequisites (Node.js >= v16 and Yarn), then:
+
+    ```bash
+    npm install -g yarn
+    yarn install
+    yarn start
+    ```
+
+    Or run the server and client in separate terminals:
+
+    ```bash
+    # Terminal 1
+    yarn start:client
+
+    # Terminal 2
+    yarn start:server
+    ```
+  </Tab>
+</Tabs>
+
+## Config file
+
+Instead of passing flags each time, you can place a `config.json` file in the same directory as the `RedEye` binary:
+
+```json
+{
+  "password": "your_password",
+  "redTeam": true,
+  "parsers": ["cobalt-strike-parser", "brute-ratel-parser"]
+}
+```
+
+All available server parameters:
+
+| Flag | Type | Description |
+|---|---|---|
+| `-r, --redTeam` | boolean | Run the server in Red Team mode |
+| `-p, --password` | string | Password for user authentication |
+| `--port` | number | Port the server is exposed on (default: `4000`) |
+| `--parsers` | string... | List of parsers to use, or a flag to use all parsers in the `parsers/` folder |
+| `-t, --childProcesses` | number | Max number of child processes the parser can use (default: `8`) |
+| `-d, --developmentMode` | boolean | Put the database and server in development mode |
+
+## Parsers folder
+
+The downloaded binary ships with a `parsers/` folder alongside the `RedEye` binary. This folder contains the parser binaries that RedEye uses to ingest raw C2 logs:
+
+- `cobalt-strike-parser` — parses Cobalt Strike log folders
+- `brute-ratel-parser` — parses Brute Ratel log folders
+- `sliver-parser` — parses Sliver log folders
+
+<Warning>
+  The `parsers/` folder must remain in the same directory as the `RedEye` binary. If the folder is missing, log parsing will not work.
+</Warning>
+
+## Creating a user
+
+The first time you open RedEye in Red Team mode, you will be prompted to log in.
+
+<Steps>
+  <Step title="Enter a username">
+    Type a username in the user text box on the login screen.
+  </Step>
+  <Step title="Create the user">
+    Click **+ New User** from the dropdown that appears. This creates a new operator account for that username.
+  </Step>
+  <Step title="Authenticate">
+    Enter the server password (the one set with `--password`) to complete login.
+  </Step>
+</Steps>
+
+<Info>
+  Usernames are used to attribute commands and comments to specific operators throughout the campaign view. Each person on the Red Team should create their own username.
+</Info>
+
+## macOS note
+
+When running RedEye for the first time on macOS, you may see a "not verified" error. To resolve it:
+
+1. Open **System Preferences** > **Security & Privacy** > **General**.
+2. Click **Open Anyway**.

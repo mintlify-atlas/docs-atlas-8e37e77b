@@ -1,0 +1,57 @@
+---
+title: "Timeline"
+description: "Filter the campaign graph by time range and replay events chronologically using the timeline scrubber."
+---
+
+The timeline is located above the graph. It lets you explore how the campaign unfolded over time by filtering the graph to a specific time range or replaying events in sequence.
+
+## What you can do with the timeline
+
+<CardGroup cols={2}>
+  <Card title="Filter by time range" icon="calendar-range">
+    Narrow the graph display to show only activity within a selected time window.
+  </Card>
+  <Card title="Replay events" icon="play">
+    Display the graph as events occurred chronologically, stepping through the campaign from start to finish.
+  </Card>
+  <Card title="Fast forward / reverse" icon="forward">
+    Accelerate or reverse playback to move quickly through longer campaigns.
+  </Card>
+  <Card title="Jump to a time" icon="clock">
+    Drag the scrubber to jump directly to a specific point in the campaign timeline.
+  </Card>
+</CardGroup>
+
+## Timezone settings
+
+By default, the timeline displays times in your current local timezone. You can change this in the **Settings Modal**:
+
+<Steps>
+  <Step title="Open the Settings Modal">
+    Click the settings icon in the navigation bar.
+  </Step>
+  <Step title="Find the Timezone section">
+    Locate the **Timezone** setting.
+  </Step>
+  <Step title="Disable AutoSelect">
+    Uncheck the **AutoSelect** option.
+  </Step>
+  <Step title="Select a timezone">
+    Use the dropdown to choose your desired timezone.
+  </Step>
+</Steps>
+
+<Info>
+  Changing the timezone only affects how timestamps are displayed. The underlying campaign data is not modified.
+</Info>
+
+## How the timeline affects the graph
+
+As you move the timeline scrubber, the graph updates to reflect only the hosts and beacons that were active during the selected time window. Beacons are categorized per time bucket as:
+
+- **Created** — Beacons that came online during the interval
+- **Active** — Beacons active throughout the entire interval
+- **Dying** — Beacons that went offline during the interval
+- **Dead** — Beacons that no longer exist by this point in time
+
+This makes it straightforward to reconstruct the sequence of events during a campaign and identify when specific hosts and beacons were involved.

@@ -1,0 +1,151 @@
+---
+title: "Local Build"
+description: "Set up a local development environment and build RedEye from source."
+---
+
+This page covers how to run RedEye from source for development and how to build release binaries.
+
+## Prerequisites
+
+- **Node.js** — pinned to `18.16.1` (see `.nvmrc` and `package.json` engines). Node.js >= 16 is the minimum, but `18.16.1` is strongly recommended.
+- **yarn** — the project uses Yarn 3.5.1 as its package manager.
+
+<Tip>
+  Use [nvm](https://github.com/nvm-sh/nvm) to manage Node.js versions. Running `nvm use` in the repo root will automatically select `18.16.1` from `.nvmrc`.
+</Tip>
+
+## Development Setup
+
+<Steps>
+
+### Install Node.js
+
+Install Node.js `18.16.1`. Using nvm:
+
+```bash
+nvm install 18.16.1
+nvm use 18.16.1
+```
+
+### Install yarn
+
+```bash
+npm install -g yarn
+```
+
+### Clone the repository
+
+```bash
+git clone https://github.com/cisagov/RedEye.git
+cd RedEye
+```
+
+### Install dependencies
+
+```bash
+yarn install
+```
+
+This installs all workspace packages and sets up the Husky pre-commit hooks automatically via the `postinstall` script.
+
+### Start development mode
+
+```bash
+yarn start
+```
+
+This runs both the server and client concurrently in development mode. The app will be available at [http://127.0.0.1:4000](http://127.0.0.1:4000).
+
+</Steps>
+
+## Advanced Development
+
+For a better development experience, run the server and client in two separate terminals. This gives you independent output streams and restart control.
+
+<Tabs>
+  <Tab title="Terminal 1 — Client">
+    ```bash
+    yarn start:client
+    ```
+  </Tab>
+  <Tab title="Terminal 2 — Server">
+    ```bash
+    yarn start:server
+    ```
+  </Tab>
+</Tabs>
+
+### Blue Team Mode
+
+To develop with Blue Team mode enabled:
+
+```bash
+yarn start:blue
+```
+
+This sets the `SERVER_BLUE_TEAM=true` environment variable and starts both the server and client in development mode.
+
+## Building Release Binaries
+
+RedEye uses [`pkg`](https://github.com/vercel/pkg) to package the Node.js application into standalone executables.
+
+<CodeGroup>
+
+```bash All Platforms
+yarn release:all
+```
+
+```bash macOS
+yarn release:mac
+```
+
+```bash Windows
+yarn release:windows
+```
+
+```bash Linux
+yarn release:linux
+```
+
+</CodeGroup>
+
+Built binaries are output to the `release/` directory.
+
+<Note>
+  Cross-compiling for other platforms from a single machine is supported but may require additional tooling. See `pkg` documentation for details.
+</Note>
+
+## Running Tests
+
+RedEye uses [Cypress](https://www.cypress.io/) for end-to-end testing.
+
+```bash
+# Open Cypress test runner (Red Team)
+yarn cy:open
+
+# Open Cypress test runner (Blue Team)
+yarn cy:open-blue
+```
+
+<Tip>
+  Before running tests, make sure the app is running in the appropriate mode. Use `yarn start:test-app` to start the server with the Vite preview client, which is what the test suite expects.
+</Tip>
+
+## Available Scripts Reference
+
+| Script | Description |
+|---|---|
+| `yarn start` | Start both server and client in development mode |
+| `yarn start:client` | Start client only in development mode |
+| `yarn start:server` | Start server only in development mode |
+| `yarn start:blue` | Start in Blue Team mode (`SERVER_BLUE_TEAM=true`) |
+| `yarn build` | Build all packages |
+| `yarn release:all` | Build binaries for Linux, macOS, and Windows |
+| `yarn release:mac` | Build macOS binary |
+| `yarn release:linux` | Build Linux binary |
+| `yarn release:windows` | Build Windows binary |
+| `yarn cy:open` | Open Cypress test runner (Red Team) |
+| `yarn cy:open-blue` | Open Cypress test runner (Blue Team) |
+| `yarn lint` | Run ESLint |
+| `yarn format` | Run Prettier on all files |
+| `yarn add-changeset` | Create a changeset for your changes |

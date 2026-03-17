@@ -1,0 +1,91 @@
+---
+title: "Parser overview"
+description: "How RedEye parsers work: the communication protocol, message format, and how parsers are discovered and invoked."
+---
+
+A RedEye **parser** is a standalone command-line program that reads C2 log data and transforms it into a structured format RedEye can ingest. Parsers live in the `parsers/` folder next to the RedEye binary and are invoked automatically by RedEye at startup and when a user uploads campaign data.
+
+Parsers can be written in any programming language that can be executed from the command line and write output to stdout. The built-in parsers are written in Node.js, but the protocol is language-agnostic.
+
+## Communication protocol
+
+RedEye communicates with a parser exclusively through command-line arguments. The parser communicates back through standard output (stdout).
+
+- **RedEye → parser**: command-line arguments
+- **Parser → RedEye**: JSON messages written to stdout
+
+Every message the parser writes to stdout must follow this format:
+
+```
+[TYPE] <JSON>\n
+```
+
+Each message is a single line ending with a newline character (`\n`). The `[TYPE]` prefix tells RedEye how to interpret the JSON payload.
+
+### Message types
+
+| Type | Description |
+|------|-------------|
+| `[DATA]` | The primary return value from a command (`ParserOutput`, `ParserInfo`, or `ParserValidateFiles`). |
+| `[PROGRESS]` | Reports parsing progress. Payload must match `{ percent: number, message: string }`. |
+| `[LOG]` | Appends a message to a log file. Payload must match `{ message: string, level?, tags?, error?, payload? }`. |
+| `[ERROR]` | An unrecoverable error. Ends the parsing process. |
+| `[DEBUG]` | Debug messages for development use only. Ignored in production. |
+
+**Example messages:**
+
+```
+[DATA] {"servers":{"server1":{"name":"server1","type":"https"}},...}\n
+[PROGRESS] {"percent":50,"message":"Processing beacon logs"}\n
+[LOG] {"message":"Parsing file 1 of 10"}\n
+[ERROR] {"message":"No valid files found in the uploaded folder"}\n
+```
+
+## Communication lifecycle
+
+<Steps>
+  <Step title="Startup: info command">
+    When RedEye starts, it calls `<parser-name> info` for every parser it detects. The parser responds with a `[DATA]` message containing its configuration, which RedEye uses to populate the upload dialog.
+  </Step>
+  <Step title="Upload: parse-campaign command">
+    When a user selects a parser and uploads files, RedEye calls `<parser-name> parse-campaign --folder /path/to/uploaded/files`. The parser reads the files at that path and returns a `[DATA]` message containing the parsed campaign data.
+  </Step>
+  <Step title="Storage">
+    RedEye processes the returned JSON and stores the campaign data in its database, making it available for visualization.
+  </Step>
+</Steps>
+
+## Parser discovery
+
+RedEye discovers parsers in two ways:
+
+1. **`parsers/` folder**: RedEye automatically detects any executable files in the `parsers/` folder located next to the RedEye binary.
+2. **`config.json`**: Set `"parsers": true` in RedEye's `config.json` to enable parser discovery from the `parsers/` folder.
+
+<Note>
+The parser binary filename must match the `id` field returned by the `info` command. For example, a binary named `cobalt-strike-parser` should return `"id": "cobalt-strike-parser"` from its `info` command.
+</Note>
+
+## Required commands
+
+Every parser must implement two commands:
+
+<CardGroup cols={2}>
+  <Card title="info" icon="circle-info" href="/parsers/info-command">
+    Called at startup. Returns parser metadata and upload form configuration.
+  </Card>
+  <Card title="parse-campaign" icon="code" href="/parsers/parse-campaign-command">
+    Called when a user uploads files. Processes the files and returns structured campaign data.
+  </Card>
+</CardGroup>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Built-in parsers" icon="box" href="/parsers/built-in-parsers">
+    Learn about the Cobalt Strike, Brute Ratel, and Sliver parsers that ship with RedEye.
+  </Card>
+  <Card title="Creating a parser" icon="wrench" href="/parsers/creating-a-parser">
+    Step-by-step guide to building a custom parser from scratch.
+  </Card>
+</CardGroup>

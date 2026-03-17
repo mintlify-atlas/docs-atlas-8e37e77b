@@ -1,0 +1,469 @@
+---
+title: "Parser output schema"
+description: "Complete field reference for every type in the ParserOutput object returned by the parse-campaign command."
+---
+
+The `parse-campaign` command must return a `[DATA]` message whose JSON payload conforms to the `ParserOutput` interface. This page documents every field in that interface.
+
+## Top-level structure
+
+```typescript
+interface ParserOutput {
+  servers:   { [serverName: string]:   ParserServer };
+  hosts:     { [hostName: string]:     ParserHost };
+  beacons:   { [beaconName: string]:   ParserBeacon };
+  operators: { [operatorName: string]: ParserOperator };
+  commands:  { [commandName: string]:  ParserCommand };
+  links:     { [linkName: string]:     ParserLink };
+}
+```
+
+Every top-level key is a dictionary where the dictionary key is a unique name for that entity. All six keys are required.
+
+---
+
+## ParserServer
+
+Represents a C2 server. Keys in the `servers` dictionary should be the server name.
+
+**Example:**
+
+```json
+{
+  "servers": {
+    "server1": {
+      "name": "server1",
+      "type": "https"
+    }
+  }
+}
+```
+
+<ResponseField name="name" type="string" required>
+  The name of the server.
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  The communication protocol of the server (`http`, `https`, `smb`, or `dns`). Defaults to `"http"` if omitted.
+
+  ```typescript
+  type = 'https';
+  ```
+</ResponseField>
+
+---
+
+## ParserHost
+
+Represents a target asset in the network. Keys in the `hosts` dictionary should be the host name.
+
+**Example:**
+
+```json
+{
+  "hosts": {
+    "DESKTOP-312": {
+      "name": "DESKTOP-312",
+      "server": "server1",
+      "os": "Windows",
+      "osVersion": "10.0.19041",
+      "ip": "192.168.23.2",
+      "type": "desktop"
+    }
+  }
+}
+```
+
+<ResponseField name="name" type="string" required>
+  The name of the host.
+</ResponseField>
+
+<ResponseField name="server" type="string" required>
+  The name of the server that first ran a command or spawned a beacon on this host. Must match a key in the `servers` dictionary.
+</ResponseField>
+
+<ResponseField name="os" type="string">
+  The operating system of the host.
+
+  ```typescript
+  os = 'Windows';
+  ```
+</ResponseField>
+
+<ResponseField name="osVersion" type="string">
+  The operating system version.
+
+  ```typescript
+  osVersion = '10.0.19041';
+  ```
+</ResponseField>
+
+<ResponseField name="ip" type="string">
+  The IP address of the host.
+
+  ```typescript
+  ip = '192.168.23.0';
+  ```
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  The type of host device.
+
+  ```typescript
+  type = 'workstation';
+  type = 'server';
+  type = 'laptop';
+  type = 'virtual machine';
+  ```
+</ResponseField>
+
+---
+
+## ParserBeacon
+
+Represents a C2 agent running on a host. Keys in the `beacons` dictionary should be the beacon name.
+
+**Example:**
+
+```json
+{
+  "beacons": {
+    "beacon1": {
+      "name": "beacon1",
+      "server": "server1",
+      "host": "DESKTOP-312",
+      "ip": "192.168.23.2",
+      "process": "svchost.exe",
+      "processId": 1234,
+      "port": 443,
+      "type": "https",
+      "startTime": "2021-01-01T00:00:00.000Z",
+      "endTime": "2021-02-02T00:00:02.000Z"
+    }
+  }
+}
+```
+
+<ResponseField name="name" type="string" required>
+  The name of the beacon.
+</ResponseField>
+
+<ResponseField name="server" type="string" required>
+  The name of the server that spawned this beacon. Must match a key in the `servers` dictionary.
+</ResponseField>
+
+<ResponseField name="host" type="string" required>
+  The name of the host this beacon is running on. Must match a key in the `hosts` dictionary.
+</ResponseField>
+
+<ResponseField name="ip" type="string">
+  The IP address of the host as reported by the beacon.
+
+  ```typescript
+  ip = '192.168.23.3';
+  ```
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  The communication type of the beacon (`http`, `https`, `smb`, or `dns`).
+</ResponseField>
+
+<ResponseField name="port" type="number">
+  The port the beacon communicates over.
+
+  ```typescript
+  port = 443; // https
+  port = 80;  // http
+  ```
+</ResponseField>
+
+<ResponseField name="process" type="string">
+  The name of the process hosting the beacon.
+
+  ```typescript
+  process = 'explorer.exe';
+  ```
+</ResponseField>
+
+<ResponseField name="processId" type="number">
+  The process ID (PID) of the beacon process.
+
+  ```typescript
+  processId = 1234;
+  ```
+</ResponseField>
+
+<ResponseField name="startTime" type="Date">
+  The date and time the beacon was initialized or ran its first command.
+
+  ```typescript
+  startTime = new Date('2021-01-01T00:00:00.000Z');
+  ```
+</ResponseField>
+
+<ResponseField name="endTime" type="Date">
+  The date and time the beacon ran its last command or was terminated.
+
+  ```typescript
+  endTime = new Date('2021-02-02T00:00:02.000Z');
+  ```
+</ResponseField>
+
+<ResponseField name="images" type="ParserImage[]">
+  A list of images the beacon downloaded.
+
+  <Expandable title="ParserImage fields">
+    <ResponseField name="fileType" type="string" required>
+      The image file type (e.g., `"png"`, `"jpg"`).
+    </ResponseField>
+    <ResponseField name="filePath" type="string" required>
+      Path to the image file that RedEye can access.
+
+      ```typescript
+      filePath = '<directory-of-parser>/images/image.png';
+      ```
+    </ResponseField>
+    <ResponseField name="fileName" type="string">
+      Display name for the image if the local filename differs.
+
+      ```typescript
+      fileName = 'host-desktop-screenshot.png';
+      ```
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="files" type="ParserFile[]">
+  A list of files the beacon uploaded or downloaded.
+
+  <Expandable title="ParserFile fields">
+    <ResponseField name="filePath" type="string" required>
+      Path to the file that RedEye can access.
+
+      ```typescript
+      filePath = '<directory-of-parser>/files/file.txt';
+      ```
+    </ResponseField>
+    <ResponseField name="fileFlag" type="string" required>
+      Whether the file was uploaded to the host or downloaded from it.
+    </ResponseField>
+    <ResponseField name="dateTime" type="Date" required>
+      The date and time the file was created or modified.
+
+      ```typescript
+      dateTime = new Date('2021-01-01T00:00:00.000Z');
+      ```
+    </ResponseField>
+    <ResponseField name="fileName" type="string">
+      Display name for the file if the local filename differs.
+
+      ```typescript
+      fileName = 'admin-list.txt';
+      ```
+    </ResponseField>
+    <ResponseField name="md5" type="string">
+      The MD5 hash of the file.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+---
+
+## ParserOperator
+
+Represents a person driving actions through a server. Keys in the `operators` dictionary should be the operator name.
+
+**Example:**
+
+```json
+{
+  "operators": {
+    "admin": {
+      "name": "admin",
+      "startTime": "2021-01-01T00:00:00.000Z",
+      "endTime": "2021-02-02T00:00:02.000Z"
+    }
+  }
+}
+```
+
+<ResponseField name="name" type="string" required>
+  The name of the operator.
+</ResponseField>
+
+<ResponseField name="startTime" type="Date">
+  The date and time the operator first sent a command.
+
+  ```typescript
+  startTime = new Date('2021-01-01T00:00:00.000Z');
+  ```
+</ResponseField>
+
+<ResponseField name="endTime" type="Date">
+  The date and time the operator last sent a command.
+
+  ```typescript
+  endTime = new Date('2021-02-02T00:00:02.000Z');
+  ```
+</ResponseField>
+
+---
+
+## ParserCommand
+
+Represents an action sent by an operator to a beacon. Keys in the `commands` dictionary should be a unique identifier (e.g., `"<command>-<beacon>-<timestamp>"`).
+
+**Example:**
+
+```json
+{
+  "commands": {
+    "admin-beacon1-2021-01-01T00:00:00": {
+      "operator": "admin",
+      "beacon": "beacon1",
+      "input": {
+        "blob": "shell whoami",
+        "filepath": "C:\\Users\\admin\\Desktop\\command.txt",
+        "lineNumber": 1,
+        "logType": "BEACON"
+      },
+      "output": {
+        "blob": "admin",
+        "filepath": "C:\\Users\\admin\\Desktop\\command.txt",
+        "lineNumber": 2,
+        "logType": "BEACON"
+      },
+      "attackIds": ["T1033"]
+    }
+  }
+}
+```
+
+<ResponseField name="beacon" type="string" required>
+  The name of the beacon the command was run on. Must match a key in the `beacons` dictionary.
+
+  ```typescript
+  beacon = 'beacon1';
+  ```
+</ResponseField>
+
+<ResponseField name="input" type="ParserLogEntry" required>
+  The log entry for the command input.
+
+  <Expandable title="ParserLogEntry fields">
+    <ResponseField name="blob" type="string" required>
+      The text of the log entry — the command input or output content.
+
+      ```typescript
+      blob = 'ls';
+      blob = '[System Process]\nsmss.exe\n...';
+      ```
+    </ResponseField>
+    <ResponseField name="logType" type="string" required>
+      The category of log entry.
+
+      - `"BEACON"` — a beacon log entry
+      - `"EVENT"` — miscellaneous events on the C2 server (e.g., operator login)
+      - `"DOWNLOAD"` — a file download from a beacon
+      - `"WEBLOG"` — a web log entry from a beacon
+      - `"KEYSTROKES"` — a keystroke log entry from a beacon
+      - `"UNKNOWN"` — any other log entry
+    </ResponseField>
+    <ResponseField name="lineType" type="string">
+      The specific type of log line when `logType` is `"BEACON"`.
+
+      - `"INPUT"` — a command input
+      - `"OUTPUT"` — a command output
+      - `"TASK"` — the C2 server acknowledging a command
+      - `"CHECKIN"` — a beacon status check-in with the server
+      - `"ERROR"` — an error of any kind
+      - `"METADATA"` — miscellaneous metadata tied to a beacon
+      - `"MODE"` — a mode change
+      - `"INDICATOR"` — an indicator of compromise
+    </ResponseField>
+    <ResponseField name="filepath" type="string">
+      Local path to the source file containing this log entry.
+
+      ```typescript
+      filepath = '<directory-of-parser>/logs/2023-02-01/log-1.txt';
+      ```
+    </ResponseField>
+    <ResponseField name="lineNumber" type="number">
+      The starting line number of the log entry in the file.
+
+      ```typescript
+      lineNumber = 123;
+      ```
+    </ResponseField>
+    <ResponseField name="dateTime" type="Date">
+      The date and time the log entry was created.
+
+      ```typescript
+      dateTime = new Date('2021-01-01T00:00:00.000Z');
+      ```
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="operator" type="string">
+  The name of the operator that sent the command. Should match a key in the `operators` dictionary.
+
+  ```typescript
+  operator = 'admin';
+  ```
+</ResponseField>
+
+<ResponseField name="output" type="ParserLogEntry">
+  The log entry for the command output. Omit or set to `undefined` if the command produced no output or the output was not found in the logs. Uses the same `ParserLogEntry` schema as `input`.
+</ResponseField>
+
+<ResponseField name="commandFailed" type="boolean">
+  Whether the command failed. Defaults to `false`.
+
+  ```typescript
+  commandFailed = true; // output was not found or command errored
+  ```
+</ResponseField>
+
+<ResponseField name="attackIds" type="string[]">
+  MITRE ATT&CK technique IDs associated with this command. Defaults to `[]`.
+
+  ```typescript
+  attackIds = ['T1059', 'T1059.001'];
+  ```
+</ResponseField>
+
+---
+
+## ParserLink
+
+Represents a connection between a server and a beacon, or between two beacons. Keys in the `links` dictionary should follow the pattern `"<from>-<to>"`.
+
+**Example:**
+
+```json
+{
+  "links": {
+    "server1-beacon1": { "from": "server1", "to": "beacon1" },
+    "beacon1-beacon2": { "from": "beacon1", "to": "beacon2" }
+  }
+}
+```
+
+<ResponseField name="from" type="string" required>
+  The origin of the link. Can be a server name or a beacon name.
+
+  ```typescript
+  from = 'server1';
+  from = 'beacon1';
+  ```
+</ResponseField>
+
+<ResponseField name="to" type="string" required>
+  The destination of the link. Must be a beacon name.
+
+  ```typescript
+  to = 'beacon1';
+  to = 'beacon2';
+  ```
+</ResponseField>

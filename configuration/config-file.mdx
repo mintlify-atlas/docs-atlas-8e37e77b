@@ -1,0 +1,93 @@
+---
+title: "Config File"
+description: "Configure RedEye using a config.json file placed next to the RedEye binary."
+---
+
+In addition to [CLI flags](/configuration/server-parameters), RedEye can be configured with a `config.json` file. Place this file in the same directory as the `RedEye` binary.
+
+<Note>
+  CLI flags always take precedence over values in `config.json`. If you pass `--port 8080` on the command line, the `port` field in `config.json` is ignored.
+</Note>
+
+## File Location
+
+The `config.json` file must be placed in the same directory as the `RedEye` binary:
+
+```
+Folder/
+  RedEye
+  config.json
+  parsers/
+    cobalt-strike-parser
+    brute-ratel-parser
+```
+
+## Format
+
+The file uses [JSON5](https://json5.org/) format, which allows comments and trailing commas.
+
+```json5
+{
+  "password": "937038570",
+  "redTeam": true,
+  "parsers": ["cobalt-strike-parser", "brute-ratel-parser"] // or true/false
+}
+```
+
+## Available Fields
+
+All fields are optional. The table below lists every field accepted by `config.json`, with its type, default value, and a description.
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `redTeam` | boolean | `false` | Run the server in Red Team mode. A `password` must also be set. |
+| `password` | string | — | Password for user authentication. Required in Red Team mode. |
+| `port` | integer | `4000` | The port the server listens on. Must be greater than `0`. |
+| `parsers` | boolean \| string[] | — | `true` to use all parsers in the `parsers` folder, `false` to disable, or an array of specific parser binary names. |
+| `maxParserSubprocesses` | integer | `8` | Maximum number of parser child processes. Must be greater than `0`. |
+| `production` | boolean | `true` | Whether the server runs in production mode. |
+| `databaseMode` | string | `PRODUCTION` | Database behavior: `PRODUCTION`, `DEV_PERSIST`, or `DEV_CLEAN`. |
+| `secret` | string | *(built-in UUID)* | Secret used to sign session tokens. Override this in production. |
+| `clientPort` | integer | `3500` | Dev client port. Informational only; not used in production. |
+
+## Full Example
+
+The following is a comprehensive `config.json` showing all available fields:
+
+```json5
+{
+  "$schema": "./config.schema.json", // optional, for editor autocompletion
+  "redTeam": true,
+  "password": "your-strong-password",
+  "port": 4000,
+  "parsers": ["cobalt-strike-parser", "brute-ratel-parser", "sliver-parser"],
+  "maxParserSubprocesses": 8,
+  "production": true,
+  "databaseMode": "PRODUCTION",
+  "secret": "your-custom-secret-string"
+}
+```
+
+<Warning>
+  Do not commit `config.json` to version control if it contains a `password` or `secret`. Add it to your `.gitignore`.
+</Warning>
+
+## Development Example
+
+For local development, the `config.json` included in the repository under `applications/server/config.json` sets up a persistent dev environment:
+
+```json5
+{
+  "$schema": "./config.schema.json",
+  "password": "937038570",
+  "secret": "supertopsecretdonttellanyone",
+  "redTeam": true,
+  "databaseMode": "DEV_PERSIST",
+  "parsers": ["sliver-parser", "cobalt-strike-parser", "brute-ratel-parser"],
+  "production": false
+}
+```
+
+<Tip>
+  The `$schema` field enables JSON schema validation and autocompletion in editors that support JSON Schema (e.g. VS Code). Point it to the bundled `config.schema.json` file.
+</Tip>

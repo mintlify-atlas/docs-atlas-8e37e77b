@@ -1,0 +1,48 @@
+---
+title: "Uploading campaigns"
+description: "Import Cobalt Strike, Brute Ratel, or previously exported .redeye campaign files into RedEye."
+---
+
+RedEye provides three ways to upload and visualize campaign data. After uploading, your campaign appears in the campaign cards screen and parsing begins automatically.
+
+## Upload methods
+
+<Tabs>
+  <Tab title="Cobalt Strike">
+    Select the Cobalt Strike option and upload a multi-server or single-server folder.
+
+    RedEye automatically removes files that are not necessary for parsing. To view the full list of removed files, hover over the **File Removed** icon after the upload completes.
+  </Tab>
+  <Tab title="Brute Ratel">
+    Select the Brute Ratel option and upload your Brute Ratel campaign folder.
+
+    RedEye parses and visualizes the campaign data automatically.
+  </Tab>
+  <Tab title=".redeye File">
+    Upload a database file ending in `.redeye` or `.sqlite`.
+
+    These files are typically campaigns that were previously exported from RedEye. See [Exporting campaigns](/guides/exporting-campaigns) for details on how to produce these files.
+  </Tab>
+</Tabs>
+
+## Parsing status
+
+After a campaign is uploaded, RedEye parses the data before it is available for exploration. The campaign card shows the current parsing status:
+
+| Status | Description |
+|---|---|
+| `PARSING_NOT_STARTED` | Upload complete, parsing has not yet begun |
+| `PARSING_QUEUED` | Campaign is queued and waiting to be parsed |
+| `PARSING_IN_PROGRESS` | RedEye is actively parsing the campaign data |
+| `PARSING_COMPLETED` | Parsing is finished; the campaign is ready to open |
+| `PARSING_FAILURE` | An error occurred during parsing |
+
+<Note>
+  If a campaign shows `PARSING_FAILURE`, verify that the uploaded folder or file matches the selected parser type.
+</Note>
+
+## Managing campaigns
+
+Once uploaded, campaigns appear as cards on the campaign screen. To rename, delete, or export a campaign, click the **More** icon on the campaign card.
+
+You can filter through the list of campaigns by typing in the input field next to the **Add a campaign** button.

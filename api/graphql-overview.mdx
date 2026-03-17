@@ -1,0 +1,169 @@
+---
+title: "GraphQL API overview"
+description: "Overview of the RedEye GraphQL API powered by Apollo Server, TypeGraphQL, and MikroORM."
+---
+
+RedEye exposes a GraphQL API that the web client uses for all data operations — querying campaigns, beacons, commands, annotations, and more. The API is built with **Apollo Server 4**, **TypeGraphQL**, and **MikroORM**.
+
+## Endpoint
+
+By default the API is available at:
+
+```
+http://127.0.0.1:4000/graphql
+```
+
+The port is configurable at startup. The same host that serves the RedEye web UI also serves the GraphQL endpoint.
+
+<Info>
+  The interactive **Apollo Sandbox** is available at the same URL when the server is running in development mode. You can use it to explore the schema, run queries, and inspect responses.
+</Info>
+
+## Authentication
+
+The API operates within the RedEye session model.
+
+| Mode | Auth mechanism |
+|------|----------------|
+| **Blue Team** | No password required. Session cookie is set automatically on first visit. |
+| **Red Team** | Password-protected. A server password must be set. Clients authenticate by calling the `createGlobalOperator` mutation, which establishes a session cookie. |
+
+<Warning>
+  In Red Team mode, all mutations that modify campaign data require an active authenticated session. Unauthenticated requests will be rejected.
+</Warning>
+
+To authenticate in Red Team mode:
+
+```graphql
+mutation Authenticate {
+  createGlobalOperator(username: "operator1", password: "your-password") {
+    id
+    name
+  }
+}
+```
+
+## Tech stack
+
+| Layer | Technology |
+|-------|------------|
+| API server | Apollo Server 4 |
+| Schema generation | TypeGraphQL |
+| ORM / database | MikroORM (SQLite) |
+| Transport | HTTP + WebSocket (subscriptions) |
+
+The schema is generated from TypeGraphQL decorators — `schema.graphql` in the repository root is the auto-generated output and is the authoritative reference for all types, queries, and mutations.
+
+## Making requests
+
+You can query the API from any GraphQL client. The RedEye codebase uses [`graphql-request`](https://github.com/jasonkuhrt/graphql-request).
+
+<Tabs>
+  <Tab title="graphql-request">
+```typescript
+import { GraphQLClient, gql } from 'graphql-request';
+
+const client = new GraphQLClient('http://127.0.0.1:4000/graphql', {
+  credentials: 'include', // required for session cookie auth
+});
+
+const query = gql`
+  query GetCampaigns {
+    campaigns {
+      id
+      name
+      beaconCount
+      commandCount
+      parsingStatus
+    }
+  }
+`;
+
+const data = await client.request(query);
+console.log(data.campaigns);
+```
+  </Tab>
+  <Tab title="curl">
+```bash
+curl -X POST http://127.0.0.1:4000/graphql \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "query": "query GetCampaigns { campaigns { id name beaconCount commandCount parsingStatus } }"
+  }'
+```
+  </Tab>
+  <Tab title="fetch">
+```javascript
+const response = await fetch('http://127.0.0.1:4000/graphql', {
+  method: 'POST',
+  credentials: 'include',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    query: `
+      query GetCampaigns {
+        campaigns {
+          id
+          name
+          beaconCount
+          commandCount
+          parsingStatus
+        }
+      }
+    `,
+  }),
+});
+
+const { data } = await response.json();
+```
+  </Tab>
+</Tabs>
+
+## Example query
+
+This query retrieves all campaigns and their high-level statistics:
+
+```graphql
+query GetCampaigns {
+  campaigns {
+    id
+    name
+    beaconCount
+    commandCount
+    parsingStatus
+  }
+}
+```
+
+Example response:
+
+```json
+{
+  "data": {
+    "campaigns": [
+      {
+        "id": "campaign-abc123",
+        "name": "Operation Nightfall",
+        "beaconCount": 14,
+        "commandCount": 342,
+        "parsingStatus": "PARSING_COMPLETED"
+      }
+    ]
+  }
+}
+```
+
+## Schema reference
+
+The complete, auto-generated schema lives at `applications/server/schema.graphql` in the repository. The pages in this section document every query, mutation, and type in detail.
+
+<Columns cols={3}>
+  <Card title="Queries" icon="magnifying-glass" href="/api/queries">
+    All read operations: campaigns, beacons, commands, annotations, and more.
+  </Card>
+  <Card title="Mutations" icon="pencil" href="/api/mutations">
+    All write operations: create, update, delete, toggle, anonymize.
+  </Card>
+  <Card title="Types" icon="shapes" href="/api/types">
+    Full type definitions, enums, and input types.
+  </Card>
+</Columns>

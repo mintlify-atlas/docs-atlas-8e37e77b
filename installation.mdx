@@ -1,0 +1,187 @@
+---
+title: "Installation"
+description: "Install RedEye using a pre-built binary, Docker, or a local source build on Linux, macOS, or Windows."
+---
+
+## System requirements
+
+| Method | Requirement |
+|---|---|
+| Binary (recommended) | No runtime dependency — the binary is self-contained |
+| Docker | Docker Engine and Docker Compose |
+| Source build | Node.js >= v16, yarn |
+
+## Platform support
+
+| Platform | Supported versions |
+|---|---|
+| Linux | Ubuntu 18+, Kali Linux 2020.1+. Others may work but are untested. |
+| macOS | El Capitan (10.11) and newer |
+| Windows | Windows 7 and newer. ARM support is experimental. |
+
+## Install RedEye
+
+<Tabs>
+  <Tab title="Binary (recommended)">
+    The pre-built binary is the fastest way to get started. No Node.js or other runtime is required.
+
+    **Step 1: Download the release**
+
+    Download the latest binary for your OS from the [GitHub Releases](https://github.com/cisagov/RedEye/releases) page. The release package contains:
+
+    - `RedEye` — the application binary
+    - `parsers/` — parser binaries (e.g. `cobalt-strike-parser`, `brute-ratel-parser`, `sliver-parser`)
+
+    Keep the `RedEye` binary and the `parsers/` folder in the same directory.
+
+    **Step 2: Make the binary executable (Linux and macOS)**
+
+    ```bash
+    chmod +x ./RedEye
+    ```
+
+    **Step 3: Run the server**
+
+    Red Team mode (password required):
+
+    ```bash
+    ./RedEye --redTeam --password <your_password>
+    ```
+
+    Blue Team mode (default, no password):
+
+    ```bash
+    ./RedEye
+    ```
+
+    The web app is available at [http://127.0.0.1:4000](http://127.0.0.1:4000).
+
+    <Warning>
+      **macOS only:** When running RedEye for the first time you may see a "not verified" error. Go to **System Preferences** > **Security & Privacy** > **General** and click **Open Anyway**. See the [Apple support page](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/) for details.
+    </Warning>
+
+    **Optional: Use a config file**
+
+    Instead of passing flags on the command line, you can place a `config.json` file next to the `RedEye` binary:
+
+    ```json
+    {
+      "password": "your_password",
+      "redTeam": true,
+      "parsers": ["cobalt-strike-parser", "brute-ratel-parser"]
+    }
+    ```
+  </Tab>
+
+  <Tab title="Docker">
+    Docker Compose runs RedEye as a containerised service. This method builds the Linux binary inside Docker and does not require Node.js on your host.
+
+    **Step 1: Clone the repository**
+
+    ```bash
+    git clone https://github.com/cisagov/RedEye.git
+    cd RedEye
+    ```
+
+    **Step 2: Configure environment variables**
+
+    Open `docker-compose.yml` and update the environment variables under the `redeye-core` service:
+
+    ```yaml
+    services:
+      redeye-core:
+        environment:
+          - NODE_ENV=production
+          - SERVER_BLUE_TEAM=false
+          - AUTHENTICATION_PASSWORD=8888
+    ```
+
+    | Variable | Default | Description |
+    |---|---|---|
+    | `NODE_ENV` | `production` | Sets the Node.js environment |
+    | `SERVER_BLUE_TEAM` | `false` | Set to `true` to run in Blue Team (read-only) mode |
+    | `AUTHENTICATION_PASSWORD` | `8888` | Password for Red Team mode authentication |
+
+    **Step 3: Start the container**
+
+    ```bash
+    docker-compose -f docker-compose.yml up -d redeye-core
+    ```
+
+    The web app is available at [http://127.0.0.1:4000](http://127.0.0.1:4000).
+
+    <Note>
+      The first run builds the Docker image, which includes compiling the RedEye binary. This can take several minutes.
+    </Note>
+  </Tab>
+
+  <Tab title="Source build">
+    Build and run RedEye directly from source. This is intended for development or for contributors.
+
+    **Prerequisites**
+
+    - [Node.js](https://nodejs.org/en/) >= v16
+    - [yarn](https://yarnpkg.com/) (installed via npm)
+
+    **Step 1: Clone the repository**
+
+    ```bash
+    git clone https://github.com/cisagov/RedEye.git
+    cd RedEye
+    ```
+
+    **Step 2: Install dependencies**
+
+    ```bash
+    npm install -g yarn
+    yarn install
+    ```
+
+    **Step 3: Start in development mode**
+
+    ```bash
+    yarn start
+    ```
+
+    This runs both the client and server concurrently. You can also run them in separate terminals:
+
+    ```bash
+    # Terminal 1 — server
+    yarn start:server
+    ```
+
+    ```bash
+    # Terminal 2 — client
+    yarn start:client
+    ```
+
+    **Build a release binary**
+
+    To compile a self-contained binary for distribution:
+
+    ```bash
+    # All platforms
+    yarn release:all
+
+    # Specific platform
+    yarn release:mac
+    yarn release:linux
+    yarn release:windows
+    ```
+
+    <Tip>
+      To run in Blue Team mode during development, prefix the start command with the environment variable: `SERVER_BLUE_TEAM=true yarn start`
+    </Tip>
+  </Tab>
+</Tabs>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Import an example dataset and start exploring the interface.
+  </Card>
+  <Card title="Server parameters" icon="terminal" href="/configuration/server-parameters">
+    Full reference for CLI flags, config file options, and port configuration.
+  </Card>
+</CardGroup>

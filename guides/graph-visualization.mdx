@@ -1,0 +1,64 @@
+---
+title: "Graph visualization"
+description: "Understand and interact with the RedEye graph showing hosts, beacons, and their connections to the C2 server."
+---
+
+The graph provides a visual map of how hosts and beacons are connected to the C2 server throughout the campaign.
+
+## Navigating the graph
+
+### Hovering over nodes
+
+- **Hover a host node** — See how beacons are linked to the host.
+- **Hover a beacon node inside a host** — See how that beacon is connected to other beacons.
+
+### Clicking nodes
+
+- **Click a host node** — Opens a detail panel showing all commands, beacons, operators, comments, and metadata associated with that host.
+- **Click a beacon node** — Opens a detail panel showing all commands, operators, comments, and metadata for that beacon.
+
+## Graph controls
+
+Controls are located on the right side of the graph:
+
+| Control | Action |
+|---|---|
+| Legend | View the graph legend |
+| Zoom in | Increase zoom level |
+| Zoom out | Decrease zoom level |
+| Reset | Reset the graph to its default view |
+
+## Changing node colors and shapes
+
+You can customize how individual hosts and beacons appear in the graph by selecting them in the Explorer panel and clicking the **Details Tab**.
+
+Available colors:
+
+| Color name | |
+|---|---|
+| `default` | Default color |
+| `forest` | Dark green |
+| `gold` | Gold/yellow |
+| `green` | Green |
+| `indigo` | Indigo/dark blue |
+| `lime` | Bright lime green |
+| `orange` | Orange |
+| `red` | Red |
+| `rose` | Rose/pink |
+| `turquoise` | Turquoise |
+| `vermilion` | Vermilion/bright red |
+| `violet` | Violet/purple |
+
+Available shapes: `circle`, `diamond`, `hexagonDown`, `hexagonUp`, `pentagonDown`, `pentagonUp`, `square`, `triangleDown`, `triangleUp`
+
+## Exporting the graph
+
+To save the current graph view as an image, click the **Export** button. The image reflects exactly what is currently displayed in the graph.
+
+## Graph settings
+
+The Settings Modal contains a **Graph** section with additional display options for the graph. Open the Settings Modal from the navigation bar to access these options.
+
+<Tip>
+  Use the [Timeline](/guides/timeline) scrubber to replay the campaign chronologically and then export snapshots of the graph at specific points in time.
+</Tip>

@@ -1,0 +1,133 @@
+---
+title: "Contributing"
+description: "How to contribute bug fixes and improvements to RedEye."
+---
+
+<Warning>
+  **This repository is in maintenance mode.** RedEye is no longer under active development. The maintainers will review community issues and pull requests for **bug fixes only** — new feature additions will not be considered.
+</Warning>
+
+Thank you for investing your time in contributing to RedEye!
+
+Read the [Code of Conduct](https://github.com/cisagov/RedEye/blob/develop/CODE_OF_CONDUCT.md) to keep the community approachable and respectable.
+
+## Getting Started
+
+<Steps>
+
+### Fork and clone the repository
+
+[Fork](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo) the [RedEye repository](https://github.com/cisagov/RedEye) on GitHub, then clone your fork:
+
+```bash
+git clone https://github.com/<your-username>/RedEye.git
+cd RedEye
+```
+
+### Create a branch
+
+[Create a separate branch](https://docs.github.com/en/desktop/contributing-and-collaborating-using-github-desktop/managing-branches) for your changes:
+
+```bash
+git checkout -b fix/your-bug-description
+```
+
+### Set up the development environment
+
+Follow the [Local Build](/development/local-build) guide to install dependencies and start the app.
+
+### Make your changes
+
+Ensure your changes:
+- Are formatted with [Prettier](https://prettier.io)
+- Pass lint checks with [ESLint](https://eslint.org)
+
+```bash
+# Format all files
+yarn format
+
+# Run linting
+yarn lint
+```
+
+### Create a changeset
+
+RedEye uses [Changesets](https://github.com/atlassian/changesets) to manage versioning and changelogs. Before opening a PR, create a changeset describing your change:
+
+```bash
+yarn add-changeset
+```
+
+This runs `yarn changeset` interactively and generates a markdown file in the `.changeset/` directory. Commit this file along with your changes.
+
+### Run the tests
+
+Validate your changes with the Cypress test suite:
+
+```bash
+yarn cy:open
+```
+
+See the [Local Build](/development/local-build) page for more detail on running tests.
+
+### Push and open a pull request
+
+Push your branch to your fork and open a pull request against the `develop` branch of the upstream repository.
+
+```bash
+git push origin fix/your-bug-description
+```
+
+Then open a PR on GitHub. The maintainers will review bug fix PRs.
+
+</Steps>
+
+## Submitting Issues
+
+Before opening an issue:
+
+- Search [existing issues](https://github.com/cisagov/RedEye/issues) to avoid duplicates.
+- Include clear steps to reproduce the bug, your OS and Node.js version, and any relevant logs.
+
+Open a new issue at: https://github.com/cisagov/RedEye/issues/new
+
+## Code Quality
+
+### Linting
+
+RedEye uses [ESLint](https://eslint.org) with the Airbnb TypeScript config.
+
+```bash
+yarn lint
+```
+
+### Formatting
+
+RedEye uses [Prettier](https://prettier.io) for code formatting.
+
+```bash
+yarn format
+```
+
+### Pre-commit Hooks
+
+Pre-commit hooks are set up automatically via [Husky](https://typicode.github.io/husky/) and [lint-staged](https://github.com/okonet/lint-staged) when you run `yarn install`. The hooks run Prettier on all staged `*.json`, `*.yml`, `*.yaml`, `*.js`, `*.jsx`, `*.ts`, and `*.tsx` files before each commit.
+
+The hook is configured in `package.json`:
+
+```json
+"lint-staged": {
+  "**/*.{json,yml,yaml,js,jsx,ts,tsx}": [
+    "yarn prettier --ignore-path .gitignore --write"
+  ]
+}
+```
+
+## Useful Resources
+
+- [Finding ways to contribute to open source on GitHub](https://docs.github.com/en/get-started/exploring-projects-on-github/finding-ways-to-contribute-to-open-source-on-github)
+- [Set up Git](https://docs.github.com/en/get-started/quickstart/set-up-git)
+- [GitHub flow](https://docs.github.com/en/get-started/quickstart/github-flow)
+- [Collaborating with pull requests](https://docs.github.com/en/github/collaborating-with-pull-requests)
+- [Changesets documentation](https://github.com/atlassian/changesets)
+- [Cypress documentation](https://www.cypress.io)

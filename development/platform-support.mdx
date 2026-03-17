@@ -1,0 +1,88 @@
+---
+title: "Platform Support"
+description: "Supported operating systems, architectures, and Node.js version requirements for RedEye."
+---
+
+RedEye is distributed as a pre-compiled binary and supports Linux, macOS, and Windows. The table below summarizes officially tested and supported configurations.
+
+## Supported Platforms
+
+<Tabs>
+  <Tab title="Linux">
+    | Distribution | Minimum Version | Status |
+    |---|---|---|
+    | Ubuntu | 18 and newer | Supported |
+    | Kali Linux | 2020.1 and newer | Supported |
+    | Other distributions | — | May work, but untested |
+
+    ```bash
+    # Run in Blue Team mode
+    ./RedEye
+
+    # Run in Red Team mode
+    ./RedEye --redTeam --password <your_password>
+    ```
+  </Tab>
+  <Tab title="macOS">
+    | Version | Status |
+    |---|---|
+    | El Capitan (10.11) and newer | Supported |
+
+    <Warning>
+      **"Not verified" error on first launch** — When running RedEye for the first time on macOS, you may see a security warning saying the app cannot be verified. To bypass it:
+
+      1. Open **System Preferences** > **Security & Privacy** > **General**.
+      2. Click **"Open Anyway"** next to the RedEye warning.
+
+      For more information, see the [Apple support page](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/).
+    </Warning>
+  </Tab>
+  <Tab title="Windows">
+    | Version | Status |
+    |---|---|
+    | Windows 7 and newer | Supported |
+    | ARM | Experimental |
+
+    <Note>
+      ARM support on Windows is experimental and may not work as expected.
+    </Note>
+  </Tab>
+</Tabs>
+
+## Node.js Requirement
+
+If you are building from source or running the development server, Node.js is required.
+
+| Requirement | Value |
+|---|---|
+| Minimum version | Node.js >= 16 |
+| Pinned version | `18.16.1` |
+| Specified in | `.nvmrc`, `package.json` `engines` field |
+
+The project pins Node.js to `18.16.1` for consistency across environments. Using a different version may work but is not tested.
+
+```bash
+# Install the pinned version with nvm
+nvm install 18.16.1
+nvm use 18.16.1
+
+# Verify
+node --version
+# v18.16.1
+```
+
+<Tip>
+  If you use [nvm](https://github.com/nvm-sh/nvm), running `nvm use` in the repository root will automatically switch to the correct version using the `.nvmrc` file.
+</Tip>
+
+## Architecture Notes
+
+- **x64 (64-bit)** is the primary supported architecture on all platforms.
+- **ARM on Windows** is experimental.
+- **ARM on Linux and macOS** — the Yarn `resolutions` in `package.json` include ARM-specific entries for `@moonrepo/core` on Linux (`arm64-gnu`, `arm64-musl`) and macOS (`arm64`), suggesting some ARM support, but this is not officially documented.
+
+## Pre-built Binaries
+
+Pre-built binaries for Linux, macOS, and Windows are available on the [GitHub Releases page](https://github.com/cisagov/RedEye/releases). No Node.js installation is required to run the pre-built binary.
+
+To build binaries yourself from source, see the [Local Build](/development/local-build) page.

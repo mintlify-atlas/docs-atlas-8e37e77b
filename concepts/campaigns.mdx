@@ -1,0 +1,98 @@
+---
+title: "Campaigns"
+description: "A campaign represents one Red Team engagement's C2 data loaded into RedEye."
+---
+
+A **campaign** is the top-level container in RedEye. Each campaign holds all the parsed C2 data — beacons, hosts, servers, operators, commands, and annotations — for a single Red Team engagement.
+
+## Campaign Cards screen
+
+After logging in, you land on the Campaign Cards screen. This is your home base for managing campaigns:
+
+- View all previously uploaded campaigns as cards.
+- Filter campaigns by typing in the search input next to the **+ Add Campaign** button.
+- Click the **More** icon on any campaign card to rename, delete, or export it.
+- Click a campaign card to open the Explorer.
+
+## Uploading a campaign
+
+RedEye supports three upload types in Red Team mode.
+
+<Tabs>
+  <Tab title="Cobalt Strike">
+    Upload a single-server or multi-server Cobalt Strike log folder. RedEye automatically removes files that are not required for parsing. Hover over the **File Removed** icon after upload to see which files were excluded.
+
+    The `cobalt-strike-parser` binary in the `parsers/` folder handles ingestion.
+  </Tab>
+  <Tab title="Brute Ratel">
+    Upload a Brute Ratel log folder. The `brute-ratel-parser` binary in the `parsers/` folder handles ingestion.
+  </Tab>
+  <Tab title=".redeye file">
+    Upload a database file ending in `.redeye` or `.sqlite`. These are campaigns that were previously exported from RedEye. This upload type is also available in Blue Team mode.
+  </Tab>
+</Tabs>
+
+<Note>
+  Raw C2 log uploads (Cobalt Strike and Brute Ratel) are only available in Red Team mode. Blue Team mode only supports `.redeye` file uploads.
+</Note>
+
+## Campaign metadata
+
+Each campaign exposes the following metadata (from the GraphQL `Campaign` type):
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | String | Unique campaign identifier |
+| `name` | String | Display name of the campaign |
+| `annotationCount` | Int | Total number of annotations (comments) in the campaign |
+| `beaconCount` | Int | Total number of beacons |
+| `commandCount` | Int | Total number of commands executed |
+| `computerCount` | Int | Total number of host computers |
+| `serverCount` | Int | Total number of C2 servers (teamservers) |
+| `firstLogTime` | DateTime | Timestamp of the earliest log entry |
+| `lastLogTime` | DateTime | Timestamp of the most recent log entry |
+| `parsers` | CampaignParser[] | Parsers used to ingest this campaign's data |
+| `parsingStatus` | ParsingStatus | Current parsing state (see below) |
+
+## Parsing status
+
+After upload, RedEye parses the raw logs asynchronously. The `parsingStatus` field reflects the current state:
+
+| Status | Meaning |
+|---|---|
+| `NOT_READY_TO_PARSE` | Campaign exists but prerequisites for parsing are not met |
+| `PARSING_NOT_STARTED` | Upload complete; parsing has not been triggered yet |
+| `PARSING_QUEUED` | Parsing job is queued and waiting to start |
+| `PARSING_IN_PROGRESS` | Parser is actively processing log files |
+| `PARSING_COMPLETED` | Parsing finished successfully; campaign data is ready |
+| `PARSING_FAILURE` | Parsing encountered an error and did not complete |
+| `LIVE_PARSING_CS` | Live Cobalt Strike parsing is in progress |
+
+## Exporting a campaign
+
+Exporting produces a `.redeye` file — a self-contained database of the campaign data — that can be shared with a Blue Team or archived.
+
+1. On the Campaign Cards screen, click the **More** icon on the campaign you want to export.
+2. Select **Export**.
+3. Save the resulting `.redeye` file.
+
+See [Blue Team mode](/concepts/blue-team-mode) for instructions on delivering exported campaigns to a Blue Team.
+
+## Anonymizing a campaign
+
+Before exporting, you can strip sensitive identifying information from the campaign. The anonymization options map directly to the `AnonymizationInput` type in the GraphQL schema:
+
+| Option | What it removes |
+|---|---|
+| `replaceHostnames` | Replaces all hostnames with anonymized substitutes |
+| `replaceUsernames` | Replaces all usernames with anonymized substitutes |
+| `replaceDomainsAndIps` | Replaces domain names and IP addresses |
+| `removeScreenshots` | Removes screenshot data |
+| `removeKeystrokes` | Removes keystroke log data |
+| `removePasswordsHashes` | Removes captured passwords and hashes |
+| `removeHidden` | Removes beacons, hosts, and servers marked as hidden |
+| `findReplace` | Custom find-and-replace pairs for ad hoc string substitution |
+
+<Warning>
+  Anonymization is applied at export time and cannot be undone on the exported file. Keep the original campaign if you need the un-anonymized data.
+</Warning>

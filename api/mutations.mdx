@@ -1,0 +1,830 @@
+---
+title: "Mutations"
+description: "Reference for all GraphQL mutations exposed by the RedEye API."
+---
+
+Mutations perform write operations: creating, updating, and deleting campaigns, beacons, annotations, links, and more.
+
+<Warning>
+  In Red Team mode, mutations require an active authenticated session. Call `createGlobalOperator` first to establish a session.
+</Warning>
+
+---
+
+## Annotations
+
+### `addAnnotationToCommandGroup`
+
+Add a new annotation to an existing command group.
+
+**Returns:** `Annotation!`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign the command group belongs to.
+</ParamField>
+
+<ParamField path="commandGroupId" type="String" required>
+  The command group to annotate.
+</ParamField>
+
+<ParamField path="text" type="String" required>
+  The annotation body text.
+</ParamField>
+
+<ParamField path="user" type="String" required>
+  The username of the operator creating the annotation.
+</ParamField>
+
+<ParamField path="tags" type="[String!]" required>
+  List of tag strings to attach. Pass an empty array if none.
+</ParamField>
+
+<ParamField path="favorite" type="Boolean">
+  Mark the annotation as a favorite. Optional.
+</ParamField>
+
+```graphql
+mutation AddAnnotationToCommandGroup {
+  addAnnotationToCommandGroup(
+    campaignId: "campaign-abc"
+    commandGroupId: "cg-001"
+    text: "Observed lateral movement via SMB beacon pivot"
+    user: "analyst1"
+    tags: ["LateralMovement", "SMB"]
+    favorite: true
+  ) {
+    id
+    text
+    user
+    date
+    favorite
+    tags {
+      id
+      text
+    }
+  }
+}
+```
+
+---
+
+### `addCommandGroupAnnotation`
+
+Create a new command group from a list of command IDs and add an annotation to it.
+
+**Returns:** `Annotation!`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign the commands belong to.
+</ParamField>
+
+<ParamField path="commandIds" type="[String!]" required>
+  The command IDs to group together.
+</ParamField>
+
+<ParamField path="text" type="String" required>
+  The annotation body text.
+</ParamField>
+
+<ParamField path="user" type="String" required>
+  The username of the operator creating the annotation.
+</ParamField>
+
+<ParamField path="tags" type="[String!]" required>
+  List of tag strings. Pass an empty array if none.
+</ParamField>
+
+<ParamField path="favorite" type="Boolean">
+  Mark the annotation as a favorite. Optional.
+</ParamField>
+
+```graphql
+mutation AddCommandGroupAnnotation {
+  addCommandGroupAnnotation(
+    campaignId: "campaign-abc"
+    commandIds: ["cmd-001", "cmd-002", "cmd-003"]
+    text: "Credential dumping sequence"
+    user: "analyst1"
+    tags: ["CredentialAccess"]
+    favorite: false
+  ) {
+    id
+    text
+    commandIds
+    commandGroupId
+    commandCount
+    generation
+  }
+}
+```
+
+---
+
+### `addCommandToCommandGroup`
+
+Add an additional command to an existing command group.
+
+**Returns:** `CommandGroup!`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign the entities belong to.
+</ParamField>
+
+<ParamField path="commandGroupId" type="String" required>
+  The command group to add the command to.
+</ParamField>
+
+<ParamField path="commandId" type="String" required>
+  The command to add.
+</ParamField>
+
+```graphql
+mutation AddCommandToCommandGroup {
+  addCommandToCommandGroup(
+    campaignId: "campaign-abc"
+    commandGroupId: "cg-001"
+    commandId: "cmd-004"
+  ) {
+    id
+    commandIds
+    commentCount
+    generation
+  }
+}
+```
+
+---
+
+### `updateAnnotation`
+
+Update the text, tags, or favorite status of an existing annotation.
+
+**Returns:** `Annotation!`
+
+<ParamField path="annotationId" type="String" required>
+  The ID of the annotation to update.
+</ParamField>
+
+<ParamField path="campaignId" type="String" required>
+  The campaign the annotation belongs to.
+</ParamField>
+
+<ParamField path="text" type="String" required>
+  Updated annotation text.
+</ParamField>
+
+<ParamField path="user" type="String" required>
+  The username of the operator making the update.
+</ParamField>
+
+<ParamField path="tags" type="[String!]" required>
+  Updated tag list. Replaces all existing tags.
+</ParamField>
+
+<ParamField path="favorite" type="Boolean">
+  Updated favorite status. Optional.
+</ParamField>
+
+```graphql
+mutation UpdateAnnotation {
+  updateAnnotation(
+    annotationId: "ann-001"
+    campaignId: "campaign-abc"
+    text: "Updated: confirmed credential dumping"
+    user: "analyst1"
+    tags: ["CredentialAccess", "Confirmed"]
+    favorite: true
+  ) {
+    id
+    text
+    user
+    date
+    favorite
+    tags {
+      id
+      text
+    }
+  }
+}
+```
+
+---
+
+### `deleteAnnotation`
+
+Delete an annotation by ID.
+
+**Returns:** `Annotation!` — the deleted annotation.
+
+<ParamField path="annotationId" type="String" required>
+  The ID of the annotation to delete.
+</ParamField>
+
+<ParamField path="campaignId" type="String" required>
+  The campaign the annotation belongs to.
+</ParamField>
+
+```graphql
+mutation DeleteAnnotation {
+  deleteAnnotation(
+    annotationId: "ann-001"
+    campaignId: "campaign-abc"
+  ) {
+    id
+    text
+  }
+}
+```
+
+---
+
+## Campaigns
+
+### `createCampaign`
+
+Create a new campaign with the specified parser.
+
+**Returns:** `Campaign!`
+
+<ParamField path="name" type="String" required>
+  Display name for the new campaign.
+</ParamField>
+
+<ParamField path="creatorName" type="String" required>
+  Username of the operator creating the campaign.
+</ParamField>
+
+<ParamField path="parser" type="String" required>
+  The parser ID to use (obtain from `parserInfo` query).
+</ParamField>
+
+```graphql
+mutation CreateCampaign {
+  createCampaign(
+    name: "Operation Nightfall"
+    creatorName: "operator1"
+    parser: "cobalt-strike-parser"
+  ) {
+    id
+    name
+    parsingStatus
+    creator {
+      id
+      name
+    }
+  }
+}
+```
+
+---
+
+### `renameCampaign`
+
+Rename an existing campaign.
+
+**Returns:** `Campaign!`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to rename.
+</ParamField>
+
+<ParamField path="name" type="String" required>
+  The new name for the campaign.
+</ParamField>
+
+```graphql
+mutation RenameCampaign {
+  renameCampaign(
+    campaignId: "campaign-abc"
+    name: "Operation Nightfall - Phase 2"
+  ) {
+    id
+    name
+  }
+}
+```
+
+---
+
+### `deleteCampaign`
+
+Permanently delete a campaign and all its data.
+
+**Returns:** `Boolean!`
+
+<Warning>
+  This operation is irreversible. All beacons, commands, annotations, and logs associated with the campaign will be deleted.
+</Warning>
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to delete.
+</ParamField>
+
+```graphql
+mutation DeleteCampaign {
+  deleteCampaign(campaignId: "campaign-abc")
+}
+```
+
+---
+
+### `anonymizeCampaign`
+
+Export an anonymized version of a campaign. Returns the path to the exported file.
+
+**Returns:** `String!` — path to the exported archive.
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to anonymize and export.
+</ParamField>
+
+<ParamField path="anonymizeOptions" type="AnonymizationInput" required>
+  Anonymization options. See the [AnonymizationInput type](/api/types#anonymizationinput).
+</ParamField>
+
+```graphql
+mutation AnonymizeCampaign {
+  anonymizeCampaign(
+    campaignId: "campaign-abc"
+    anonymizeOptions: {
+      replaceHostnames: true
+      replaceUsernames: true
+      replaceDomainsAndIps: true
+      removePasswordsHashes: true
+      removeScreenshots: false
+      removeKeystrokes: false
+      removeHidden: true
+      findReplace: [
+        { find: "ACME-CORP", replace: "TARGET-ORG" }
+      ]
+    }
+  )
+}
+```
+
+---
+
+### `serversParse`
+
+Trigger log parsing for all servers in a campaign.
+
+**Returns:** `Boolean!`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to parse.
+</ParamField>
+
+```graphql
+mutation ParseServers {
+  serversParse(campaignId: "campaign-abc")
+}
+```
+
+---
+
+## Authentication
+
+### `createGlobalOperator`
+
+Authenticate to the RedEye server and create or retrieve a global operator session. Used in Red Team mode to establish an authenticated session.
+
+**Returns:** `GlobalOperator` — the authenticated operator, or `null` if authentication fails.
+
+<ParamField path="username" type="String" required>
+  The operator username.
+</ParamField>
+
+<ParamField path="password" type="String" required>
+  The server password.
+</ParamField>
+
+```graphql
+mutation Login {
+  createGlobalOperator(
+    username: "analyst1"
+    password: "correct-horse-battery"
+  ) {
+    id
+    name
+  }
+}
+```
+
+---
+
+## Links
+
+### `createLink`
+
+Create a manual link between two beacons.
+
+**Returns:** `Link!`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign the beacons belong to.
+</ParamField>
+
+<ParamField path="name" type="String" required>
+  Display name for the link.
+</ParamField>
+
+<ParamField path="originId" type="String" required>
+  The origin beacon ID.
+</ParamField>
+
+<ParamField path="destinationId" type="String" required>
+  The destination beacon ID.
+</ParamField>
+
+<ParamField path="commandId" type="String" required>
+  A command ID to associate with the link.
+</ParamField>
+
+```graphql
+mutation CreateLink {
+  createLink(
+    campaignId: "campaign-abc"
+    name: "SMB Pivot"
+    originId: "beacon-001"
+    destinationId: "beacon-002"
+    commandId: "cmd-010"
+  ) {
+    id
+    name
+    manual
+    startTime
+    endTime
+    origin {
+      id
+      beaconName
+    }
+    destination {
+      id
+      beaconName
+    }
+  }
+}
+```
+
+---
+
+### `editLink`
+
+Update an existing link.
+
+**Returns:** `Link!`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign the link belongs to.
+</ParamField>
+
+<ParamField path="id" type="String" required>
+  The link ID to edit.
+</ParamField>
+
+<ParamField path="name" type="String" required>
+  Updated display name.
+</ParamField>
+
+<ParamField path="originId" type="String" required>
+  Updated origin beacon ID.
+</ParamField>
+
+<ParamField path="destinationId" type="String" required>
+  Updated destination beacon ID.
+</ParamField>
+
+<ParamField path="commandId" type="String" required>
+  Updated associated command ID.
+</ParamField>
+
+```graphql
+mutation EditLink {
+  editLink(
+    campaignId: "campaign-abc"
+    id: "link-001"
+    name: "SMB Pivot (updated)"
+    originId: "beacon-001"
+    destinationId: "beacon-003"
+    commandId: "cmd-011"
+  ) {
+    id
+    name
+    origin {
+      id
+      beaconName
+    }
+    destination {
+      id
+      beaconName
+    }
+  }
+}
+```
+
+---
+
+### `deleteLink`
+
+Delete a link.
+
+**Returns:** `Link!` — the deleted link.
+
+<ParamField path="campaignId" type="String" required>
+  The campaign the link belongs to.
+</ParamField>
+
+<ParamField path="id" type="String" required>
+  The link ID to delete.
+</ParamField>
+
+```graphql
+mutation DeleteLink {
+  deleteLink(campaignId: "campaign-abc", id: "link-001") {
+    id
+    name
+  }
+}
+```
+
+---
+
+## Visibility
+
+Beacons, hosts, and servers can be hidden from the UI. These mutations toggle the hidden state.
+
+### `toggleBeaconHidden`
+
+Toggle or set the hidden state for one or more beacons.
+
+**Returns:** `[Beacon!]!`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign the beacons belong to.
+</ParamField>
+
+<ParamField path="beaconId" type="String">
+  A single beacon ID. Use this or `beaconIds`.
+</ParamField>
+
+<ParamField path="beaconIds" type="[String!]">
+  Multiple beacon IDs. Use this or `beaconId`.
+</ParamField>
+
+<ParamField path="setHidden" type="Boolean">
+  Explicitly set the hidden value. If omitted, the current state is toggled.
+</ParamField>
+
+```graphql
+mutation HideBeacons {
+  toggleBeaconHidden(
+    campaignId: "campaign-abc"
+    beaconIds: ["beacon-001", "beacon-002"]
+    setHidden: true
+  ) {
+    id
+    beaconName
+    hidden
+  }
+}
+```
+
+---
+
+### `toggleHostHidden`
+
+Toggle or set the hidden state for one or more hosts.
+
+**Returns:** `[Host!]!`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign the hosts belong to.
+</ParamField>
+
+<ParamField path="hostId" type="String">
+  A single host ID. Use this or `hostIds`.
+</ParamField>
+
+<ParamField path="hostIds" type="[String!]">
+  Multiple host IDs.
+</ParamField>
+
+<ParamField path="setHidden" type="Boolean">
+  Explicitly set the hidden value. If omitted, the current state is toggled.
+</ParamField>
+
+```graphql
+mutation HideHost {
+  toggleHostHidden(
+    campaignId: "campaign-abc"
+    hostId: "host-001"
+    setHidden: true
+  ) {
+    id
+    hostName
+    hidden
+  }
+}
+```
+
+---
+
+### `toggleServerHidden`
+
+Toggle or set the hidden state for one or more servers.
+
+**Returns:** `[Server!]!`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign the servers belong to.
+</ParamField>
+
+<ParamField path="serverId" type="String">
+  A single server ID. Use this or `serverIds`.
+</ParamField>
+
+<ParamField path="serverIds" type="[String!]">
+  Multiple server IDs.
+</ParamField>
+
+<ParamField path="setHidden" type="Boolean">
+  Explicitly set the hidden value. If omitted, the current state is toggled.
+</ParamField>
+
+```graphql
+mutation HideServer {
+  toggleServerHidden(
+    campaignId: "campaign-abc"
+    serverId: "server-001"
+    setHidden: true
+  ) {
+    id
+    name
+    hidden
+  }
+}
+```
+
+---
+
+## Metadata
+
+### `updateBeaconMetadata`
+
+Update display metadata for a beacon — name, color, shape, type, or time of death.
+
+**Returns:** `Beacon!`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign the beacon belongs to.
+</ParamField>
+
+<ParamField path="beaconId" type="String" required>
+  The beacon to update.
+</ParamField>
+
+<ParamField path="beaconDisplayName" type="String">
+  Custom display name for the beacon.
+</ParamField>
+
+<ParamField path="beaconType" type="BeaconType">
+  Communication type: `dns`, `http`, `https`, or `smb`.
+</ParamField>
+
+<ParamField path="beaconTimeOfDeath" type="DateTime">
+  The time the beacon stopped responding.
+</ParamField>
+
+<ParamField path="color" type="NodeColors">
+  Node color for the graph visualization.
+</ParamField>
+
+<ParamField path="shape" type="Shapes">
+  Node shape for the graph visualization.
+</ParamField>
+
+```graphql
+mutation UpdateBeaconMetadata {
+  updateBeaconMetadata(
+    campaignId: "campaign-abc"
+    beaconId: "beacon-001"
+    beaconDisplayName: "Foothold - DC01"
+    beaconType: smb
+    color: red
+    shape: diamond
+  ) {
+    id
+    beaconName
+    displayName
+    meta {
+      type
+      color
+      shape
+    }
+  }
+}
+```
+
+---
+
+### `updateHostMetadata`
+
+Update display metadata for a host.
+
+**Returns:** `Host!`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign the host belongs to.
+</ParamField>
+
+<ParamField path="hostId" type="String" required>
+  The host to update.
+</ParamField>
+
+<ParamField path="hostDisplayName" type="String">
+  Custom display name.
+</ParamField>
+
+<ParamField path="color" type="NodeColors">
+  Node color for the graph visualization.
+</ParamField>
+
+<ParamField path="shape" type="Shapes">
+  Node shape for the graph visualization.
+</ParamField>
+
+```graphql
+mutation UpdateHostMetadata {
+  updateHostMetadata(
+    campaignId: "campaign-abc"
+    hostId: "host-001"
+    hostDisplayName: "Domain Controller"
+    color: indigo
+    shape: square
+  ) {
+    id
+    hostName
+    displayName
+    meta {
+      color
+      shape
+      ip
+      os
+    }
+  }
+}
+```
+
+---
+
+### `updateServerMetadata`
+
+Update display metadata for a C2 server.
+
+**Returns:** `Server!`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign the server belongs to.
+</ParamField>
+
+<ParamField path="serverId" type="String" required>
+  The server to update.
+</ParamField>
+
+<ParamField path="serverDisplayName" type="String">
+  Custom display name.
+</ParamField>
+
+<ParamField path="serverType" type="ServerType">
+  Communication type: `dns`, `http`, `https`, or `smb`.
+</ParamField>
+
+<ParamField path="color" type="NodeColors">
+  Node color for the graph visualization.
+</ParamField>
+
+<ParamField path="shape" type="Shapes">
+  Node shape for the graph visualization.
+</ParamField>
+
+```graphql
+mutation UpdateServerMetadata {
+  updateServerMetadata(
+    campaignId: "campaign-abc"
+    serverId: "server-001"
+    serverDisplayName: "Primary C2"
+    serverType: https
+    color: forest
+    shape: hexagonUp
+  ) {
+    id
+    name
+    displayName
+    meta {
+      type
+      color
+      shape
+    }
+  }
+}
+```

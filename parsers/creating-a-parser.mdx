@@ -1,0 +1,141 @@
+---
+title: "Creating a parser"
+description: "How to build a custom RedEye parser: structure, commands, message format, and deployment."
+---
+
+A RedEye parser is any executable file placed in the `parsers/` folder that implements two commands: `info` and `parse-campaign`. The parser can be written in any language — this guide uses Node.js.
+
+## Overview
+
+Parsers communicate with RedEye through a simple protocol:
+
+- RedEye sends instructions via **command-line arguments**
+- The parser responds with **JSON messages written to stdout**
+- Every message follows the format `[TYPE] <JSON>\n`
+
+For this guide, the parser is called `custom-redeye-parser`.
+
+## Communication lifecycle
+
+<Steps>
+  <Step title="RedEye starts up">
+    RedEye calls `custom-redeye-parser info` to retrieve parser metadata. The parser writes a `[DATA]` message to stdout with its configuration. RedEye uses this to build the upload form in the UI.
+  </Step>
+  <Step title="User uploads files">
+    The user selects the parser in RedEye's **Add Campaign** dialog and uploads a folder of C2 log files.
+  </Step>
+  <Step title="RedEye invokes parse-campaign">
+    RedEye calls `custom-redeye-parser parse-campaign --folder /path/to/uploaded/files`. The `--folder` argument is the absolute path to the folder containing the uploaded files.
+  </Step>
+  <Step title="Parser processes the files">
+    The parser reads the files at the given path, transforms the data into the RedEye data structure, and writes a `[DATA]` message to stdout with the parsed output.
+  </Step>
+  <Step title="RedEye stores the data">
+    RedEye reads the `[DATA]` message, parses the JSON, and stores the campaign data in its database.
+  </Step>
+</Steps>
+
+## Implementing the info command
+
+Create a file called `custom-redeye-parser` and add the following:
+
+```typescript
+#!/usr/bin/env node
+function info() {
+	const message =
+		'[DATA] ' + // The start of our message with the DATA message type
+		JSON.stringify({
+			version: 1, // The version of the RedEye parser config that the parser is compatible with
+			id: 'custom-redeye-parser', // ID for parser, should match the name of the binary file or command
+			name: 'Custom RedEye Parser', // The display name of the parser
+
+			// Configures the upload form in the RedEye client for the parser
+			uploadForm: {
+				serverDelineation: 'Database', // How our C2 data is separated, by folders of files or database/config file
+				enabledInBlueTeam: false, // Whether the parser is enabled for Blue Team users
+				tabTitle: 'C2 Framework', // The title of the upload option in the selection menu
+				fileUpload: {
+					type: 'Directory', // The type of upload, is it a single file or a directory
+					validate: 'None', // How to validate the files uploaded, more on this later
+					description: 'Upload a directory of C2 log files', // A description of the upload
+				},
+				fileDisplay: {
+					editable: true, // Whether the user can edit the server names before uploading
+				},
+			},
+		}) +
+		'\n'; // End the message with a newline
+	process.stdout.write(message);
+}
+
+if (process.argv[2] === 'info') {
+	// Check if the command is info
+	info();
+}
+```
+
+See the [info command reference](/parsers/info-command) for the full schema of the response object.
+
+## Implementing the parse-campaign command
+
+Add a `parse-campaign` handler that reads the uploaded files and returns structured data:
+
+```typescript
+if (process.argv[2] === 'parse-campaign') {
+	parseLogFile();
+}
+```
+
+The `--folder` argument is available at `process.argv[4]` and contains the path to the uploaded files. Your parser reads files from that folder and writes a `[DATA]` message containing the full `ParserOutput` object.
+
+See the [parse-campaign command reference](/parsers/parse-campaign-command) for a complete working example and the [output schema reference](/parsers/parser-output-schema) for the full data model.
+
+## Making the parser executable
+
+<Steps>
+  <Step title="Set the executable bit">
+    ```bash
+    chmod +x custom-redeye-parser
+    ```
+  </Step>
+  <Step title="Place the binary in the parsers/ folder">
+    Copy or move the file to the `parsers/` folder next to the RedEye binary.
+
+    ```bash
+    cp custom-redeye-parser /path/to/redeye/parsers/
+    ```
+  </Step>
+  <Step title="Enable parsers in config.json">
+    Set `"parsers": true` in RedEye's `config.json`:
+
+    ```json
+    {
+      "parsers": true
+    }
+    ```
+  </Step>
+  <Step title="Start RedEye">
+    Start RedEye. Your custom parser will appear as an option in the **Add Campaign** dialog under the tab title you configured.
+  </Step>
+</Steps>
+
+<Tip>
+For compiled languages (Go, Rust, C, etc.), build your binary and place the output executable directly in the `parsers/` folder. The filename must match the `id` field in your `info` response.
+</Tip>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="info command" icon="circle-info" href="/parsers/info-command">
+    Full reference for the info command response schema.
+  </Card>
+  <Card title="parse-campaign command" icon="code" href="/parsers/parse-campaign-command">
+    Full reference with a complete working Node.js example.
+  </Card>
+  <Card title="Parser output schema" icon="brackets-curly" href="/parsers/parser-output-schema">
+    Detailed schema for every field in the ParserOutput object.
+  </Card>
+  <Card title="Built-in parsers" icon="box" href="/parsers/built-in-parsers">
+    Read the built-in parsers for real-world implementation examples.
+  </Card>
+</CardGroup>

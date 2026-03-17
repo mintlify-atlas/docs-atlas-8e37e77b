@@ -1,0 +1,200 @@
+---
+title: "info command"
+description: "Reference for the info command that configures a parser's upload form in the RedEye UI."
+---
+
+The `info` command is called by RedEye at startup for every parser it detects. Its purpose is to tell RedEye how to display the parser in the **Add Campaign** upload dialog.
+
+## Invocation
+
+```bash
+<parser-name> info
+```
+
+## Response
+
+The parser must write a single `[DATA]` message to stdout containing a JSON object that conforms to the `ParserInfo` interface.
+
+```
+[DATA] <ParserInfo JSON>\n
+```
+
+## Example
+
+```typescript
+#!/usr/bin/env node
+function info() {
+	const message =
+		'[DATA] ' + // The start of our message with the DATA message type
+		JSON.stringify({
+			version: 1, // The version of the RedEye parser config that the parser is compatible with
+			id: 'custom-redeye-parser', // ID for parser, should match the name of the binary file or command
+			name: 'Custom RedEye Parser', // The display name of the parser
+
+			// Configures the upload form in the RedEye client for the parser
+			uploadForm: {
+				serverDelineation: 'Database', // How our C2 data is separated, by folders of files or database/config file
+				enabledInBlueTeam: false, // Whether the parser is enabled for Blue Team users
+				tabTitle: 'C2 Framework', // The title of the upload option in the selection menu
+				fileUpload: {
+					type: 'Directory', // The type of upload, is it a single file or a directory
+					validate: 'None', // How to validate the files uploaded
+					description: 'Upload a directory of C2 log files', // A description of the upload
+				},
+				fileDisplay: {
+					editable: true, // Whether the user can edit the server names before uploading
+				},
+			},
+		}) +
+		'\n'; // End the message with a newline
+	process.stdout.write(message);
+}
+
+if (process.argv[2] === 'info') {
+	info();
+}
+```
+
+When this is placed in the `parsers/` folder and RedEye is started with `"parsers": true` in `config.json`, the parser appears in the **Add Campaign** dialog.
+
+## ParserInfo schema
+
+<ResponseField name="version" type="number" required>
+  The version of the RedEye parser configuration schema this parser targets. Use `1` unless a newer version is required.
+
+  ```typescript
+  version = 1;
+  ```
+</ResponseField>
+
+<ResponseField name="id" type="string" required>
+  The unique identifier for the parser. Must match the filename of the parser binary.
+
+  ```typescript
+  // If the binary is named 'my-parser'
+  id = 'my-parser';
+  ```
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  The human-readable display name shown in the RedEye UI.
+
+  ```typescript
+  name = 'My Custom Parser';
+  ```
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  An optional description of the parser.
+
+  ```typescript
+  description = 'Parses logs from the Acme C2 framework';
+  ```
+</ResponseField>
+
+<ResponseField name="uploadForm" type="UploadForm" required>
+  Configures the upload form displayed to the user in the **Add Campaign** dialog.
+
+  <Expandable title="UploadForm fields">
+    <ResponseField name="tabTitle" type="string" required>
+      The label for this parser's tab in the upload dialog.
+
+      ```typescript
+      tabTitle = 'Cobalt Strike';
+      ```
+    </ResponseField>
+
+    <ResponseField name="serverDelineation" type="string" required>
+      How C2 server data is separated in the uploaded files.
+
+      - `"Folder"` — server data is separated into distinct sub-folders (e.g., `CAMPAIGN/SERVER/DATE/`)
+      - `"Database"` — server data is not in any particular folder structure (e.g., a single database or config file)
+
+      ```typescript
+      // Server logs are in per-server sub-folders
+      serverDelineation = 'Folder';
+      // All server data is in a single file or mixed folder
+      serverDelineation = 'Database';
+      ```
+    </ResponseField>
+
+    <ResponseField name="enabledInBlueTeam" type="boolean" required>
+      Whether this parser is available to users in Blue Team mode. Blue Team mode is read-only. Set to `false` unless the parser is specifically intended for defensive analysis.
+
+      ```typescript
+      enabledInBlueTeam = false;
+      ```
+    </ResponseField>
+
+    <ResponseField name="fileUpload" type="object" required>
+      Configures the file or directory upload control.
+
+      <Expandable title="fileUpload fields">
+        <ResponseField name="type" type="string" required>
+          Whether the user uploads a single file (or file selection) or an entire directory.
+
+          - `"Directory"` — upload an entire folder
+          - `"File"` — upload a single file or a selection of multiple files
+        </ResponseField>
+
+        <ResponseField name="validate" type="string" required>
+          How uploaded files are validated before the campaign is created.
+
+          - `"None"` — no validation, any folder or files are accepted
+          - `"FileExtensions"` — validate by file extension in the client; requires an `acceptedExtensions` array
+          - `"Parser"` — validation is delegated to the parser's `validate-files` command (the parser must implement this command)
+
+          ```typescript
+          // No validation
+          validate = { validate: 'None' };
+          // Only allow specific extensions
+          validate = { validate: 'FileExtensions', acceptedExtensions: ['log', 'txt'] };
+          // Parser validates the files server-side
+          validate = { validate: 'Parser' };
+          ```
+        </ResponseField>
+
+        <ResponseField name="acceptedExtensions" type="string[]">
+          Required when `validate` is `"FileExtensions"`. An array of file extensions (without the leading dot) that are accepted.
+
+          ```typescript
+          acceptedExtensions = ['log', 'txt', 'json'];
+          ```
+        </ResponseField>
+
+        <ResponseField name="description" type="string" required>
+          A description shown in the upload dialog that tells the user what to upload.
+
+          ```typescript
+          description = 'Upload a directory of C2 log files';
+          ```
+        </ResponseField>
+
+        <ResponseField name="example" type="string">
+          An optional string displayed in the upload dialog as an example of the expected file or folder structure.
+
+          ```typescript
+          example = `Campaign_Folder
+- Server_Folder_1
+  - 200101
+  - 200102`;
+          ```
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+
+    <ResponseField name="fileDisplay" type="object" required>
+      Configures the list of servers shown after the user selects files.
+
+      <Expandable title="fileDisplay fields">
+        <ResponseField name="editable" type="boolean" required>
+          Whether the user can rename the servers inferred from the uploaded files before the campaign is created.
+
+          ```typescript
+          editable = true;
+          ```
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>

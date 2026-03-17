@@ -1,97 +1,97 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "RedEye — Red Team C2 Log Visualization"
+description: "An open-source visual analytic tool for Red and Blue Team operations, developed by CISA and Pacific Northwest National Laboratory."
 ---
 
-## Setting up
+<img
+  src="https://github.com/cisagov/RedEye/blob/develop/docs/images/RedEye-Hero-Screenshot.png?raw=true"
+  alt="RedEye Screenshot"
+  style={{ borderRadius: '8px', marginBottom: '24px' }}
+/>
 
-Get your documentation site up and running in minutes.
+## What is RedEye?
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+RedEye is an open-source analytic tool developed by [CISA](https://www.cisa.gov/) and [DOE](https://www.energy.gov/)'s [Pacific Northwest National Laboratory](https://www.pnnl.gov/) to assist Red Teams with visualizing and reporting command-and-control (C2) activities.
 
-## Make it yours
+RedEye parses logs from C2 frameworks like Cobalt Strike, Brute Ratel, and Sliver, then presents that data in an interactive graph-based interface. Operators can tag and annotate commands, replay attack timelines, and export curated campaign data for Blue Team review.
 
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Download RedEye and start visualizing your first campaign in minutes.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Installation" icon="download" href="/installation">
+    Platform-specific setup instructions for Linux, macOS, and Windows.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Red Team Mode" icon="crosshairs" href="/concepts/red-team-mode">
+    Import C2 logs, annotate commands, and build presentations.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Blue Team Mode" icon="shield" href="/concepts/blue-team-mode">
+    Review curated campaign exports in a simplified read-only interface.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## Key capabilities
 
-Everything you need to create world-class documentation.
+<CardGroup cols={3}>
+  <Card title="Graph Visualization" icon="diagram-project">
+    Interactive network graph showing relationships between C2 servers, beacons, and compromised hosts.
+  </Card>
+  <Card title="Timeline Replay" icon="clock">
+    Scrub through the campaign timeline to replay attack activities as they occurred.
+  </Card>
+  <Card title="MITRE ATT&CK Mapping" icon="shield-halved">
+    Commands are automatically tagged with MITRE ATT&CK technique identifiers.
+  </Card>
+  <Card title="Full-Text Search" icon="magnifying-glass">
+    Search across beacons, hosts, operators, commands, comments, and tags instantly.
+  </Card>
+  <Card title="Presentation Mode" icon="presentation-screen">
+    Build slideshow-style reports from annotated comments, grouped by tag.
+  </Card>
+  <Card title="Custom Parsers" icon="puzzle-piece">
+    Extensible parser system — write a parser for any C2 framework in any language.
+  </Card>
+</CardGroup>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+## Red Team and Blue Team modes
 
-## Need inspiration?
+RedEye operates in two distinct modes covering both stages of a Red Team engagement:
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+| Feature | Red Team Mode | Blue Team Mode |
+|---|---|---|
+| Upload C2 logs | ✓ | ✗ |
+| Edit and annotate | ✓ | ✗ |
+| Create presentations | ✓ | ✓ |
+| Export campaigns | ✓ | ✓ |
+| Authentication required | ✓ (password) | ✗ |
+
+<Note>
+  Both modes run from the same RedEye binary. Pass `--redTeam --password <password>` to enable Red Team mode, or run without arguments for Blue Team mode.
+</Note>
+
+## Supported C2 frameworks
+
+RedEye ships with built-in parsers for the most common C2 frameworks:
+
+- **Cobalt Strike** — Full beacon log parsing including metadata, commands, and output
+- **Brute Ratel** — Campaign log parsing and visualization
+- **Sliver** — Log ingestion and visualization
+
+You can also [build a custom parser](/parsers/creating-a-parser) for any C2 framework.
+
+## Get started
+
+<Steps>
+  <Step title="Download RedEye">
+    Download the latest binary for your OS from the [GitHub Releases](https://github.com/cisagov/RedEye/releases) page.
+  </Step>
+  <Step title="Start the server">
+    Run `./RedEye --redTeam --password <your_password>` for Red Team mode, or simply `./RedEye` for Blue Team mode.
+  </Step>
+  <Step title="Open the web app">
+    Navigate to [http://127.0.0.1:4000](http://127.0.0.1:4000) in your browser (RedEye opens it automatically).
+  </Step>
+  <Step title="Import a campaign">
+    Upload your C2 logs or try the [example dataset](https://github.com/cisagov/RedEye/raw/develop/applications/redeye-e2e/src/fixtures/gt.redeye) to get started.
+  </Step>
+</Steps>

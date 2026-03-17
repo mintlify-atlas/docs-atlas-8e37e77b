@@ -1,0 +1,139 @@
+---
+title: "Docker"
+description: "Deploy RedEye using Docker and docker-compose."
+---
+
+RedEye can be run in a container using Docker and `docker-compose`. This is one of the three supported ways to run RedEye in Red Team mode.
+
+## Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) installed and running
+- [docker-compose](https://docs.docker.com/compose/install/) installed
+- Git (to clone the repository)
+
+## Setup
+
+<Steps>
+
+### Clone the repository
+
+```bash
+git clone https://github.com/cisagov/RedEye.git
+cd RedEye
+```
+
+### Configure environment variables
+
+Open `docker-compose.yml` and update the environment variables under the `redeye-core` service:
+
+```yaml
+services:
+  redeye-core:
+    image: redeye-core:latest
+    environment:
+      - NODE_ENV=production
+      - SERVER_BLUE_TEAM=false
+      - AUTHENTICATION_PASSWORD=8888
+    ports:
+      - 4000:4000
+```
+
+| Variable | Default | Description |
+|---|---|---|
+| `NODE_ENV` | `production` | Node.js environment. Set to `production` for deployment. |
+| `SERVER_BLUE_TEAM` | `false` | Set to `true` to run in Blue Team (read-only) mode. Set to `false` for Red Team mode. |
+| `AUTHENTICATION_PASSWORD` | `8888` | Password for user authentication in Red Team mode. Change this before deploying. |
+
+<Warning>
+  Change `AUTHENTICATION_PASSWORD` from the default value of `8888` before deploying to any shared or production environment.
+</Warning>
+
+### Start the container
+
+```bash
+docker-compose -f docker-compose.yml up -d redeye-core
+```
+
+This starts only the `redeye-core` service in detached mode.
+
+### Access the web UI
+
+Open your browser and navigate to [http://localhost:4000](http://localhost:4000).
+
+</Steps>
+
+## Services
+
+The `docker-compose.yml` defines two services:
+
+| Service | Description |
+|---|---|
+| `redeye-core` | The main RedEye server. Runs the compiled Linux binary on port `4000`. |
+| `redeye-artifacts` | A builder service that compiles the project. Used for producing release artifacts, not for running the server. |
+
+<Note>
+  You only need to start `redeye-core` to run the application. The `redeye-artifacts` service is a build utility.
+</Note>
+
+## Full docker-compose.yml
+
+```yaml
+version: '3.8'
+
+services:
+  redeye-core:
+    image: redeye-core:latest
+    environment:
+      - NODE_ENV=production
+      - SERVER_BLUE_TEAM=false
+      - AUTHENTICATION_PASSWORD=8888
+    ports:
+      - 4000:4000
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: redeye-core
+  redeye-artifacts:
+    image: redeye-builder:latest
+    environment:
+      - NODE_ENV=production
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: redeye-builder
+```
+
+## Dockerfile Overview
+
+The `Dockerfile` uses a multi-stage build:
+
+1. **`redeye-builder`** — Installs dependencies, builds the server and client, and packages a release tarball using `pkg`.
+2. **`redeye-linux-builder`** — Builds the Linux binary specifically using `pkg`.
+3. **`redeye-core`** — A minimal Debian image that copies the compiled Linux release from `redeye-linux-builder` and runs `./RedEye` as the entrypoint.
+
+```dockerfile
+FROM node:18-bullseye as redeye-builder
+# ... build steps ...
+
+FROM debian as redeye-core
+WORKDIR /app
+COPY --from=redeye-linux-builder /app/release/linux .
+ENTRYPOINT [ "/bin/bash", "-l", "-c" ]
+CMD ["./RedEye"]
+```
+
+## Common Commands
+
+```bash
+# Start in detached mode
+docker-compose -f docker-compose.yml up -d redeye-core
+
+# View logs
+docker-compose -f docker-compose.yml logs -f redeye-core
+
+# Stop the container
+docker-compose -f docker-compose.yml down
+
+# Rebuild the image after code changes
+docker-compose -f docker-compose.yml up -d --build redeye-core
+```

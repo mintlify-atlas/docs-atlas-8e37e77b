@@ -1,0 +1,360 @@
+---
+title: "parse-campaign command"
+description: "Reference for the parse-campaign command, including the data model, relationships, and a complete working example."
+---
+
+The `parse-campaign` command is called by RedEye when a user uploads files for a campaign. The parser reads the uploaded files and returns structured campaign data that RedEye stores in its database.
+
+## Invocation
+
+```bash
+<parser-name> parse-campaign --folder </absolute/path/to/folder>
+```
+
+The `--folder` argument is the absolute path to the folder containing the files the user uploaded.
+
+## Response
+
+The parser must write a single `[DATA]` message to stdout containing a JSON object that conforms to the `ParserOutput` interface:
+
+```
+[DATA] <ParserOutput JSON>\n
+```
+
+## Data model
+
+The `ParserOutput` object is a network graph with six entity types:
+
+| Entity | Description |
+|--------|-------------|
+| `servers` | C2 servers that operators use to send commands to beacons. |
+| `hosts` | Target assets in the network (workstations, laptops, servers, etc.). |
+| `beacons` | C2 agents running on hosts that execute commands. |
+| `operators` | The people driving actions through servers. Standalone entities referenced by commands. |
+| `commands` | Actions that operators execute on beacons through servers. |
+| `links` | Connections from servers to beacons, and from beacons to beacons. |
+
+### Relationships
+
+- `Operators` are standalone entities referenced by the `Commands` they execute.
+- `Servers` are the starting point of the network graph.
+  - `Hosts` are assigned to the first `Server` that establishes a connection.
+  - `Beacons` are assigned to `Hosts`.
+  - `Commands` are assigned to `Beacons`.
+  - `Links` connect `Servers` to `Beacons` and `Beacons` to `Beacons`.
+
+## Progress reporting
+
+During a long parse, the parser can report progress by writing `[PROGRESS]` messages to stdout:
+
+```
+[PROGRESS] {"percent": 50, "message": "Processing logs for beacon beacon1"}\n
+```
+
+The `percent` field is a number from 0 to 100. RedEye displays this progress in the UI while the campaign is being created.
+
+## Working example
+
+The following example parses a fabricated C2 log file called `c2-log-files.txt`:
+
+```
+2023-08-17T19:37:41 [INIT] <thor> server - name: server1; type: https;
+2023-08-17T19:38:41 [INIT] <thor> beacon - name: beacon1; from: server1; procces: explorer.exe; pid: 1234; port: 443; - on: host1; ip: 192.168.23.1; os: Windows 10.0.19041;
+2023-08-17T19:39:41 [COMMAND] <thor> beacon1 - mitre: T1057 -> ps
+2023-08-17T19:40:11 [OUTPUT]
+***
+[System Process]	0	0
+System	0	4
+Registry	4	68
+smss.exe	4	268
+***
+2023-08-17T19:44:23 [INIT] <thor> beacon - name: beacon2; from: beacon1; procces: notepad.exe; pid: 3456; port: 443; - on: host1; ip: 192.168.23.1; os: Windows 10.0.19041;
+```
+
+### How the log maps to the data model
+
+<Tabs>
+  <Tab title="Line 1: server init">
+    ```
+    2023-08-17T19:37:41 [INIT] <thor> server - name: server1; type: https;
+    ```
+
+    Extracts a server named `server1` and an operator named `thor`.
+
+    ```json
+    {
+      "servers": {
+        "server1": { "name": "server1", "type": "https" }
+      },
+      "operators": {
+        "thor": { "name": "thor" }
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="Line 2: beacon init">
+    ```
+    2023-08-17T19:38:41 [INIT] <thor> beacon - name: beacon1; from: server1; ...
+    ```
+
+    Creates `host1`, `beacon1`, and a link from `server1` to `beacon1`.
+
+    ```json
+    {
+      "hosts": {
+        "host1": { "name": "host1", "ip": "192.168.23.1", "os": "Windows", "osVersion": "10.0.19041" }
+      },
+      "beacons": {
+        "beacon1": { "name": "beacon1", "process": "explorer.exe", "pid": "1234", "port": "443", "host": "host1", "server": "server1" }
+      },
+      "links": {
+        "server1-beacon1": { "from": "server1", "to": "beacon1" }
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="Lines 3–4: command + output">
+    ```
+    2023-08-17T19:39:41 [COMMAND] <thor> beacon1 - mitre: T1057 -> ps
+    2023-08-17T19:40:11 [OUTPUT]
+    ***
+    ...
+    ***
+    ```
+
+    Creates a command with input and output log entries.
+
+    ```json
+    {
+      "commands": {
+        "ps-beacon1-17-08-23 19:39:41": {
+          "attackIds": ["T1057"],
+          "input": {
+            "blob": "ps",
+            "dateTime": "17-08-23 19:39:41",
+            "logType": "BEACON",
+            "filePath": "<folder>/c2-log-files.txt",
+            "lineNumber": "3"
+          },
+          "output": {
+            "blob": "[System Process]\t0\t0\nSystem\t0\t4\n...",
+            "dateTime": "17-08-23 19:40:11",
+            "logType": "BEACON",
+            "filePath": "<folder>/c2-log-files.txt",
+            "lineNumber": "4"
+          },
+          "beacon": "beacon1",
+          "operator": "thor",
+          "timestamp": "17-08-23 19:39:41"
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="Line 5: child beacon">
+    ```
+    2023-08-17T19:44:23 [INIT] <thor> beacon - name: beacon2; from: beacon1; ...
+    ```
+
+    Creates `beacon2` (spawned from `beacon1`) and a beacon-to-beacon link.
+
+    ```json
+    {
+      "beacons": {
+        "beacon2": { "name": "beacon2", "process": "notepad.exe", "pid": "3456", "port": "443", "host": "host1", "server": "server1" }
+      },
+      "links": {
+        "beacon1-beacon2": { "from": "beacon1", "to": "beacon2" }
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Complete parser implementation
+
+```typescript
+#!/usr/bin/env node
+import fileSystem from 'fs';
+
+function parseLogFile() {
+	const logPath = process.argv[4].replaceAll('"', ''); // Get the path and remove the quotes around it
+	const logFile = fileSystem.readFileSync(`${logPath}/c2-log-files.txt`, 'utf8'); // Read the log file from the path passed in the command
+	const lines = logFile.split('\n'); // Split the log file into lines
+	const output = {
+		// Create an empty object to store our output
+		servers: {},
+		hosts: {},
+		beacons: {},
+		operators: {},
+		commands: {},
+		links: {},
+	};
+
+	const totalLines = lines.length;
+	while (lines.length > 0) {
+		// Iterate over each line in the log file
+		const line = lines.shift(); // Get the first line in the log file
+		if (!line.length) {
+			break; // If the line is empty, break out of the loop
+		}
+		const [messageInfo, ...message] = line.split(' - '); // Split the line into its parts
+		const [timestamp, type, operatorItem, source] = messageInfo.split(' '); // Split the line into its parts
+		const operator = operatorItem.replace('<', '').replace('>', ''); // Get the operator name
+		if (type === '[INIT]') {
+			// Check if the line is an INIT message
+			const properties = getProperties(message[0]);
+
+			if (source === 'server') {
+				output.servers[properties.name] = {
+					// Create a new server object
+					name: properties.name,
+					type: properties.type,
+				};
+			}
+
+			if (source === 'beacon') {
+				const hostProperties = getProperties(message[1]);
+				output.beacons[properties.name] = {
+					// Create a new beacon object
+					name: properties.name,
+					host: hostProperties.on,
+					process: properties.process,
+					processId: properties.pid,
+					port: properties.port,
+					server: properties.server,
+				};
+				output.links[`${properties.name}-${properties.from}`] = {
+					// Create a new link object
+					source: properties.name,
+					target: properties.from,
+				};
+				if (!output.hosts[hostProperties.on]) {
+					const [os, osVersion] = hostProperties.os.split(' '); // Get the os and os version of the host
+					output.hosts[hostProperties.on] = {
+						name: hostProperties.on,
+						ip: hostProperties.ip,
+						os: os,
+						osVersion: osVersion,
+					};
+				}
+			}
+		}
+		if (type === '[COMMAND]') {
+			// Check if the line is a COMMAND message
+			const [commandProps, command] = message;
+			const properties = getProperties(commandProps);
+			const inputLineNumber = totalLines - lines.length;
+
+			// Get the command output
+			let commandOutput = '';
+
+			const [commandOutputTimestamp] = lines.shift().split(' ');
+			lines.shift(); // Move past starting *** line
+			while (lines[0] !== '***') {
+				commandOutput += lines.shift() + '\n';
+			}
+			lines.shift(); // Move past ending *** line
+			const outputLineNumber = totalLines - lines.length;
+
+			// Create a new command object
+			output.commands[`${command}-${source}-${timestamp}`] = {
+				attackIds: properties.mitre.split(','),
+				input: {
+					blob: command,
+					dateTime: timestamp,
+					logType: 'BEACON',
+					lineType: 'INPUT',
+					filePath: process.argv[4],
+					lineNumber: inputLineNumber,
+				},
+				output: {
+					blob: commandOutput,
+					dateTime: commandOutputTimestamp,
+					logType: 'BEACON',
+					lineType: 'OUTPUT',
+					filePath: process.argv[4],
+					lineNumber: outputLineNumber,
+				},
+				beacon: source,
+				operator: operator,
+			};
+		}
+	}
+
+	const message =
+		'[DATA] ' + // The start of our message with the DATA message type
+		JSON.stringify(output); // The output object as a JSON string
+	+'\n'; // A new line character to end the message
+
+	process.stdout.write(message); // Write the message to stdout
+}
+
+function getProperties(message) {
+	const properties = {};
+
+	for (const property of message.split('; ')) {
+		// Iterate over each property in the message
+		const [key, value] = property.split(': '); // Split the property into its parts
+		properties[key] = value; // Add the property to the properties object
+	}
+
+	return properties;
+}
+
+if (process.argv[2] === 'info') {
+	info();
+} else if (process.argv[2] === 'parse-campaign') {
+	parseLogFile();
+}
+```
+
+### Final ParserOutput for the example
+
+```json
+{
+  "servers": {
+    "server1": { "name": "server1", "type": "https" }
+  },
+  "hosts": {
+    "host1": { "name": "host1", "ip": "192.168.23.1", "os": "Windows", "osVersion": "10.0.19041" }
+  },
+  "beacons": {
+    "beacon1": { "name": "beacon1", "process": "explorer.exe", "pid": "1234", "port": "443", "host": "host1", "server": "server1", "commands": ["ps"] },
+    "beacon2": { "name": "beacon2", "process": "notepad.exe", "pid": "3456", "port": "443", "host": "host1", "server": "server1" }
+  },
+  "operators": {
+    "thor": { "name": "thor" }
+  },
+  "links": {
+    "server1-beacon1": { "from": "server1", "to": "beacon1" },
+    "beacon1-beacon2": { "from": "beacon1", "to": "beacon2" }
+  },
+  "commands": {
+    "ps-beacon1-17-08-23 19:39:41": {
+      "attackIds": ["T1057"],
+      "input": {
+        "blob": "ps",
+        "dateTime": "17-08-23 19:39:41",
+        "logType": "BEACON",
+        "filePath": "<folder-with-log-files>/c2-log-files.txt",
+        "lineNumber": "3"
+      },
+      "beacon": "beacon1",
+      "operator": "thor",
+      "timestamp": "17-08-23 19:39:41"
+    }
+  }
+}
+```
+
+## See also
+
+<CardGroup cols={2}>
+  <Card title="Parser output schema" icon="brackets-curly" href="/parsers/parser-output-schema">
+    Full field-level reference for every type in ParserOutput.
+  </Card>
+  <Card title="info command" icon="circle-info" href="/parsers/info-command">
+    Reference for the info command that configures the upload form.
+  </Card>
+</CardGroup>

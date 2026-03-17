@@ -1,0 +1,86 @@
+---
+title: "Comments and tags"
+description: "Annotate commands with comments and tags to document findings and organize campaign data for reporting."
+---
+
+Comments and tags let you annotate commands with context, findings, and MITRE ATT&CK technique labels. Annotated commands are used in [Presentations](/guides/presentations) for structured reporting.
+
+## Adding a comment
+
+<Steps>
+  <Step title="Hover over a command">
+    In the command list, hover over the command you want to annotate.
+  </Step>
+  <Step title="Click Add Comment">
+    Click the **Add Comment** button that appears on hover.
+  </Step>
+  <Step title="Fill in the comment modal">
+    In the new comment modal you can:
+    - Write your comment text
+    - Add one or more tags
+    - Mark the comment as a favorite
+  </Step>
+</Steps>
+
+## Multi-command comment
+
+You can attach a single comment to multiple commands at once:
+
+<Steps>
+  <Step title="Select commands">
+    Use the checkbox on each command to select one or more commands.
+  </Step>
+  <Step title="Click Comment on commands">
+    Click the **Comment on commands** button that appears after selecting commands.
+  </Step>
+  <Step title="Fill in the comment modal">
+    Write your comment, add tags, and optionally favorite it.
+  </Step>
+</Steps>
+
+<Note>
+  Multi-command comments appear in the Comments Tab and in Presentations just like single-command comments.
+</Note>
+
+## Adding a command to an existing comment
+
+You can associate an additional command with a comment that already exists. This is useful when a finding spans more than one command discovered after the initial annotation.
+
+## Managing comments
+
+All comments are visible in the **Comments Tab** of the Explorer panel. Available actions:
+
+| Action | Description |
+|---|---|
+| **Delete** | Permanently removes the comment |
+| **Edit** | Modify comment text; add or remove tags |
+| **Reply** | Add a threaded reply to the comment |
+| **Favorite** | Toggle the favorite flag on the comment |
+
+## Tags and MITRE techniques
+
+Tags serve two purposes:
+
+1. **Organization** — Comments are grouped by tag in Presentations.
+2. **Visual indicators** — Certain tags display as icons on beacon nodes in the graph, making notable activity immediately visible.
+
+Tags that appear as icons on beacons include:
+
+- Privilege Escalation
+- Goldenticket
+- jump
+- elevate
+
+RedEye also maps commands to MITRE ATT&CK techniques. The full set of recognized techniques includes: `Collection`, `CommandAndControl`, `CredentialAccess`, `DefenseEvasion`, `Discovery`, `Execution`, `Exfiltration`, `GoldenTicket`, `Impact`, `InitialAccess`, `LateralMovement`, `Persistence`, `PrivilegeEscalation`, `Reconnaissance`, and `ResourceDevelopment`.
+
+## Comment data model
+
+Each annotation stores the following fields:
+
+| Field | Type | Description |
+|---|---|---|
+| `text` | string | The comment body |
+| `favorite` | boolean | Whether the comment is favorited |
+| `tags` | array | Tags attached to the comment |
+| `commandIds` | array | The command(s) the comment is linked to |
+| `commandGroupId` | string | Group identifier for multi-command comments |

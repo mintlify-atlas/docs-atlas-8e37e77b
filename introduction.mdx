@@ -1,0 +1,87 @@
+---
+title: "Introduction"
+description: "RedEye is an open-source visual analytic tool for Red and Blue Team C2 log visualization, developed by CISA and Pacific Northwest National Laboratory."
+---
+
+<img
+  src="https://github.com/cisagov/RedEye/blob/develop/docs/images/RedEye-Hero-Screenshot.png?raw=true"
+  alt="RedEye screenshot showing the graph visualization interface"
+  style={{ borderRadius: '8px', marginBottom: '24px' }}
+/>
+
+RedEye is an open-source analytic tool developed by [CISA](https://www.cisa.gov/) and [DOE](https://www.energy.gov/)'s [Pacific Northwest National Laboratory](https://www.pnnl.gov/) to assist Red Teams with visualizing and reporting command-and-control (C2) activities.
+
+RedEye parses logs from C2 frameworks such as Cobalt Strike, Brute Ratel, and Sliver, then presents that data in an interactive, graph-based interface. Operators can tag and annotate commands, replay attack timelines, and export curated campaign data for Blue Team review.
+
+<Info>
+  RedEye is released under the [BSD-3-Clause license](https://github.com/cisagov/RedEye/blob/develop/LICENSE) and is free to use, modify, and distribute.
+</Info>
+
+## Key use cases
+
+<CardGroup cols={3}>
+  <Card title="Replay attack timelines" icon="clock">
+    Replay and demonstrate Red Team assessment activities as they occurred, instead of manually reading thousands of lines of log text.
+  </Card>
+  <Card title="Evaluate complex data" icon="chart-network">
+    Display and assess complex assessment data to enable effective decision making and evaluate mitigation strategies.
+  </Card>
+  <Card title="Understand attack paths" icon="route">
+    Gain a clearer picture of the attack path taken and the hosts compromised during a Red Team assessment or penetration test.
+  </Card>
+</CardGroup>
+
+## Two modes for two teams
+
+RedEye runs from a single binary but operates in two distinct modes covering both stages of a Red Team engagement.
+
+### Red Team mode
+
+Red Team mode enables the full feature set. You must provide a password to start the server in this mode.
+
+- Upload C2 logs from Cobalt Strike, Brute Ratel, Sliver, or a custom parser
+- Explore data in the graph and timeline views
+- Annotate commands with comments and tags
+- Build slideshow presentations from annotated data
+- Export the curated campaign as a `.redeye` file for Blue Team handoff
+
+### Blue Team mode
+
+Blue Team mode is a simplified, read-only interface for reviewing campaigns that a Red Team has curated, annotated, and exported. It runs by default — no password required.
+
+- Review imported `.redeye` campaign files
+- Navigate the graph and timeline views
+- View Red Team annotations and presentations
+
+<Note>
+  Both modes run from the same RedEye binary. Pass `--redTeam --password <password>` to enable Red Team mode, or run without arguments for Blue Team mode.
+</Note>
+
+| Feature | Red Team mode | Blue Team mode |
+|---|---|---|
+| Upload C2 logs | ✓ | ✗ |
+| Edit and annotate | ✓ | ✗ |
+| Create presentations | ✓ | ✓ |
+| Export campaigns | ✓ | ✓ |
+| Password required | ✓ | ✗ |
+
+## Supported C2 frameworks
+
+RedEye ships with built-in parsers for the most common C2 frameworks:
+
+- **Cobalt Strike** — Full beacon log parsing including metadata, commands, and output
+- **Brute Ratel** — Campaign log parsing and visualization
+- **Sliver** — Log ingestion and visualization
+
+You can also [build a custom parser](/parsers/creating-a-parser) for any C2 framework.
+
+## Get started
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Download RedEye and start visualizing your first campaign in minutes.
+  </Card>
+  <Card title="Installation" icon="download" href="/installation">
+    Platform-specific setup instructions for Binary, Docker, and source builds.
+  </Card>
+</CardGroup>

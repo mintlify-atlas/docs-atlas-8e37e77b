@@ -1,0 +1,1043 @@
+---
+title: "Queries"
+description: "Reference for all GraphQL queries exposed by the RedEye API."
+---
+
+All queries are read-only operations. Required arguments are marked as such; optional arguments default to the values shown.
+
+<Note>
+  Every campaign-scoped query requires a `campaignId` argument. Obtain campaign IDs from the top-level `campaigns` query.
+</Note>
+
+---
+
+## `annotation`
+
+Fetch a single annotation by ID.
+
+**Returns:** `Annotation`
+
+<ParamField path="annotationId" type="String" required>
+  The ID of the annotation to retrieve.
+</ParamField>
+
+<ParamField path="campaignId" type="String" required>
+  The campaign the annotation belongs to.
+</ParamField>
+
+```graphql
+query GetAnnotation {
+  annotation(annotationId: "ann-001", campaignId: "campaign-abc") {
+    id
+    text
+    user
+    date
+    favorite
+    tags {
+      id
+      text
+    }
+    commandIds
+    commandGroupId
+    commandCount
+    tagCount
+    generation
+  }
+}
+```
+
+---
+
+## `annotations`
+
+Fetch all annotations for a campaign.
+
+**Returns:** `[Annotation]`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to retrieve annotations for.
+</ParamField>
+
+```graphql
+query GetAnnotations {
+  annotations(campaignId: "campaign-abc") {
+    id
+    text
+    user
+    date
+    favorite
+    tags {
+      id
+      text
+    }
+    commandCount
+    tagCount
+  }
+}
+```
+
+---
+
+## `beacons`
+
+Fetch all beacons for a campaign.
+
+**Returns:** `[Beacon]`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to retrieve beacons for.
+</ParamField>
+
+<ParamField path="hidden" type="Boolean">
+  Include hidden beacons. Defaults to `false`.
+</ParamField>
+
+```graphql
+query GetBeacons {
+  beacons(campaignId: "campaign-abc", hidden: false) {
+    id
+    beaconName
+    displayName
+    hidden
+    commandsCount
+    commentsCount
+    logsCount
+    serverId
+    host {
+      id
+      hostName
+    }
+    meta {
+      type
+      startTime
+      endTime
+      ip
+      pid
+      process
+      username
+      color
+      shape
+    }
+  }
+}
+```
+
+---
+
+## `campaign`
+
+Fetch a single campaign by ID.
+
+**Returns:** `Campaign`
+
+<ParamField path="campaignId" type="String" required>
+  The ID of the campaign to retrieve.
+</ParamField>
+
+```graphql
+query GetCampaign {
+  campaign(campaignId: "campaign-abc") {
+    id
+    name
+    beaconCount
+    commandCount
+    annotationCount
+    computerCount
+    serverCount
+    parsingStatus
+    firstLogTime
+    lastLogTime
+    migrationError
+    creator {
+      id
+      name
+    }
+    lastOpenedBy {
+      id
+      name
+    }
+  }
+}
+```
+
+---
+
+## `campaigns`
+
+Fetch the list of all campaigns.
+
+**Returns:** `[Campaign]`
+
+This query takes no arguments.
+
+```graphql
+query GetCampaigns {
+  campaigns {
+    id
+    name
+    beaconCount
+    commandCount
+    annotationCount
+    computerCount
+    serverCount
+    parsingStatus
+    firstLogTime
+    lastLogTime
+  }
+}
+```
+
+---
+
+## `commandGroup`
+
+Fetch a single command group by ID.
+
+**Returns:** `CommandGroup`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign the command group belongs to.
+</ParamField>
+
+<ParamField path="commandGroupId" type="String" required>
+  The ID of the command group.
+</ParamField>
+
+<ParamField path="hidden" type="Boolean">
+  Include hidden entities. Defaults to `false`.
+</ParamField>
+
+```graphql
+query GetCommandGroup {
+  commandGroup(
+    campaignId: "campaign-abc"
+    commandGroupId: "cg-001"
+    hidden: false
+  ) {
+    id
+    commandIds
+    generation
+    commentCount
+    annotations {
+      id
+      text
+      user
+    }
+    commands {
+      id
+      inputText
+    }
+  }
+}
+```
+
+---
+
+## `commandGroupIds`
+
+Fetch a list of command group IDs, with optional filters.
+
+**Returns:** `[String]`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to query.
+</ParamField>
+
+<ParamField path="beaconId" type="String">
+  Filter by beacon.
+</ParamField>
+
+<ParamField path="commandGroupIds" type="[String!]">
+  Filter to a specific set of command group IDs.
+</ParamField>
+
+<ParamField path="commandIds" type="[String!]">
+  Filter by command IDs.
+</ParamField>
+
+<ParamField path="commandType" type="String">
+  Filter by command type string (e.g. `"shell"`)
+</ParamField>
+
+<ParamField path="hidden" type="Boolean">
+  Include hidden entities. Defaults to `false`.
+</ParamField>
+
+<ParamField path="hostId" type="String">
+  Filter by host.
+</ParamField>
+
+<ParamField path="operatorId" type="String">
+  Filter by operator.
+</ParamField>
+
+<ParamField path="sort" type="SortTypeComments">
+  Sort configuration. Defaults to `{ sortBy: time }`.
+</ParamField>
+
+```graphql
+query GetCommandGroupIds {
+  commandGroupIds(
+    campaignId: "campaign-abc"
+    beaconId: "beacon-001"
+    hidden: false
+    sort: { sortBy: time, direction: ASC }
+  )
+}
+```
+
+---
+
+## `commandGroups`
+
+Fetch command groups, with the same filter options as `commandGroupIds`.
+
+**Returns:** `[CommandGroup]`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to query.
+</ParamField>
+
+<ParamField path="beaconId" type="String">
+  Filter by beacon.
+</ParamField>
+
+<ParamField path="commandGroupIds" type="[String!]">
+  Filter to a specific set of command group IDs.
+</ParamField>
+
+<ParamField path="commandIds" type="[String!]">
+  Filter by command IDs.
+</ParamField>
+
+<ParamField path="commandType" type="String">
+  Filter by command type.
+</ParamField>
+
+<ParamField path="hidden" type="Boolean">
+  Include hidden entities. Defaults to `false`.
+</ParamField>
+
+<ParamField path="hostId" type="String">
+  Filter by host.
+</ParamField>
+
+<ParamField path="operatorId" type="String">
+  Filter by operator.
+</ParamField>
+
+<ParamField path="sort" type="SortTypeComments">
+  Sort configuration. Defaults to `{ sortBy: time }`.
+</ParamField>
+
+```graphql
+query GetCommandGroups {
+  commandGroups(
+    campaignId: "campaign-abc"
+    hidden: false
+    sort: { sortBy: fav, direction: DESC }
+  ) {
+    id
+    commandIds
+    generation
+    commentCount
+    annotations {
+      id
+      text
+      favorite
+    }
+  }
+}
+```
+
+---
+
+## `commandIds`
+
+Fetch a list of command IDs, with optional filters.
+
+**Returns:** `[String]`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to query.
+</ParamField>
+
+<ParamField path="beaconId" type="String">
+  Filter by beacon.
+</ParamField>
+
+<ParamField path="commandIds" type="[String!]">
+  Filter to a specific set of command IDs.
+</ParamField>
+
+<ParamField path="commandType" type="String">
+  Filter by command type.
+</ParamField>
+
+<ParamField path="hidden" type="Boolean">
+  Include hidden values. Defaults to `false`.
+</ParamField>
+
+<ParamField path="hostId" type="String">
+  Filter by host.
+</ParamField>
+
+<ParamField path="operatorId" type="String">
+  Filter by operator.
+</ParamField>
+
+<ParamField path="sort" type="SortType">
+  Sort configuration. Defaults to `{ sortBy: name }`.
+</ParamField>
+
+```graphql
+query GetCommandIds {
+  commandIds(
+    campaignId: "campaign-abc"
+    beaconId: "beacon-001"
+    sort: { sortBy: time, direction: DESC }
+  )
+}
+```
+
+---
+
+## `commands`
+
+Fetch full command objects. Accepts the same filters as `commandIds`.
+
+**Returns:** `[Command]`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to query.
+</ParamField>
+
+<ParamField path="beaconId" type="String">
+  Filter by beacon.
+</ParamField>
+
+<ParamField path="commandIds" type="[String!]">
+  Filter to a specific set of command IDs.
+</ParamField>
+
+<ParamField path="commandType" type="String">
+  Filter by command type.
+</ParamField>
+
+<ParamField path="hidden" type="Boolean">
+  Include hidden values. Defaults to `false`.
+</ParamField>
+
+<ParamField path="hostId" type="String">
+  Filter by host.
+</ParamField>
+
+<ParamField path="operatorId" type="String">
+  Filter by operator.
+</ParamField>
+
+<ParamField path="sort" type="SortType">
+  Sort configuration. Defaults to `{ sortBy: name }`.
+</ParamField>
+
+```graphql
+query GetCommands {
+  commands(
+    campaignId: "campaign-abc"
+    beaconId: "beacon-001"
+    hidden: false
+  ) {
+    id
+    inputText
+    commandFailed
+    commentsCount
+    attackIds
+    mitreTechniques
+    beacon {
+      id
+      beaconName
+    }
+    operator {
+      id
+      name
+    }
+    input {
+      id
+      blob
+      dateTime
+      lineType
+    }
+    output {
+      id
+      blob
+      lineType
+    }
+  }
+}
+```
+
+---
+
+## `commandTypes`
+
+Fetch a list of command type counts for a campaign.
+
+**Returns:** `[CommandTypeCount]`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to retrieve command types for.
+</ParamField>
+
+<ParamField path="hidden" type="Boolean">
+  Include hidden values. Defaults to `false`.
+</ParamField>
+
+```graphql
+query GetCommandTypes {
+  commandTypes(campaignId: "campaign-abc", hidden: false) {
+    id
+    text
+    count
+    beaconsCount
+    commentsCount
+  }
+}
+```
+
+---
+
+## `files`
+
+Fetch uploaded/downloaded files associated with a campaign.
+
+**Returns:** `[File]`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to retrieve files for.
+</ParamField>
+
+<ParamField path="beaconId" type="String">
+  Filter by beacon.
+</ParamField>
+
+<ParamField path="hostId" type="String">
+  Filter by host.
+</ParamField>
+
+```graphql
+query GetFiles {
+  files(campaignId: "campaign-abc") {
+    id
+    fileName
+    fileFlag
+    location
+    dateTime
+    md5
+  }
+}
+```
+
+---
+
+## `globalOperators`
+
+Fetch all global operators. Requires the server password.
+
+**Returns:** `[GlobalOperator]`
+
+<ParamField path="password" type="String" required>
+  The server password (Red Team mode only).
+</ParamField>
+
+```graphql
+query GetGlobalOperators {
+  globalOperators(password: "server-password") {
+    id
+    name
+  }
+}
+```
+
+---
+
+## `hosts`
+
+Fetch all hosts for a campaign.
+
+**Returns:** `[Host]`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to retrieve hosts for.
+</ParamField>
+
+<ParamField path="hidden" type="Boolean">
+  Include hidden hosts. Defaults to `false`.
+</ParamField>
+
+```graphql
+query GetHosts {
+  hosts(campaignId: "campaign-abc", hidden: false) {
+    id
+    hostName
+    displayName
+    hidden
+    cobaltStrikeServer
+    commandsCount
+    commentCount
+    beaconIds
+    meta {
+      id
+      ip
+      os
+      osVersion
+      type
+      color
+      shape
+    }
+  }
+}
+```
+
+---
+
+## `images`
+
+Fetch screenshot images associated with a campaign.
+
+**Returns:** `[Image]`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to retrieve images for.
+</ParamField>
+
+<ParamField path="beaconId" type="String">
+  Filter by beacon.
+</ParamField>
+
+<ParamField path="hostId" type="String">
+  Filter by host.
+</ParamField>
+
+```graphql
+query GetImages {
+  images(campaignId: "campaign-abc") {
+    id
+    fileType
+    url
+  }
+}
+```
+
+---
+
+## `links`
+
+Fetch all beacon-to-beacon links for a campaign.
+
+**Returns:** `[Link]`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to retrieve links for.
+</ParamField>
+
+<ParamField path="hidden" type="Boolean">
+  Include hidden links. Defaults to `false`.
+</ParamField>
+
+```graphql
+query GetLinks {
+  links(campaignId: "campaign-abc", hidden: false) {
+    id
+    name
+    manual
+    startTime
+    endTime
+    origin {
+      id
+      beaconName
+    }
+    destination {
+      id
+      beaconName
+    }
+    command {
+      id
+      inputText
+    }
+  }
+}
+```
+
+---
+
+## `nonHidableEntities`
+
+Fetch the set of beacons, hosts, and servers that cannot be hidden because they are required by visible entities.
+
+**Returns:** `NonHidableEntities!`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to query.
+</ParamField>
+
+<ParamField path="beaconIds" type="[String!]">
+  Beacon IDs to check. Defaults to `[]`.
+</ParamField>
+
+<ParamField path="hostIds" type="[String!]">
+  Host IDs to check. Defaults to `[]`.
+</ParamField>
+
+```graphql
+query GetNonHidableEntities {
+  nonHidableEntities(
+    campaignId: "campaign-abc"
+    beaconIds: ["beacon-001", "beacon-002"]
+    hostIds: ["host-001"]
+  ) {
+    beacons
+    hosts
+    servers
+  }
+}
+```
+
+---
+
+## `operators`
+
+Fetch all operators who ran commands in a campaign.
+
+**Returns:** `[Operator]`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to retrieve operators for.
+</ParamField>
+
+<ParamField path="hidden" type="Boolean">
+  Include hidden values. Defaults to `false`.
+</ParamField>
+
+```graphql
+query GetOperators {
+  operators(campaignId: "campaign-abc") {
+    id
+    name
+    startTime
+    endTime
+    commentsCount
+    beaconIds
+    logIds
+  }
+}
+```
+
+---
+
+## `parserInfo`
+
+Fetch metadata about all available log parsers.
+
+**Returns:** `[ParserInfo!]!`
+
+This query takes no arguments.
+
+```graphql
+query GetParsers {
+  parserInfo {
+    id
+    name
+    version
+    uploadForm {
+      tabTitle
+      enabledInBlueTeam
+      serverDelineation
+      fileUpload {
+        type
+        description
+        example
+        acceptedExtensions
+        validate
+      }
+    }
+  }
+}
+```
+
+---
+
+## `presentationItems`
+
+Fetch presentation mode categories (annotations grouped for the presentation view).
+
+**Returns:** `[PresentationItem]`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to retrieve presentation items for.
+</ParamField>
+
+<ParamField path="hidden" type="Boolean">
+  Include hidden values. Defaults to `false`.
+</ParamField>
+
+<ParamField path="userOnly" type="Boolean">
+  Return only items created by the current user. Defaults to `false`.
+</ParamField>
+
+<ParamField path="forOverviewComments" type="Boolean">
+  Return items for the overview comments panel. Defaults to `false`.
+</ParamField>
+
+<ParamField path="commentsTabSort" type="SortTypeCommentsTab">
+  Sort for the comments tab. Defaults to `{ sortBy: minTime }`.
+</ParamField>
+
+<ParamField path="listSort" type="SortTypeCommentsList">
+  Sort for the list view. Defaults to `{ sortBy: alphabetical }`.
+</ParamField>
+
+```graphql
+query GetPresentationItems {
+  presentationItems(
+    campaignId: "campaign-abc"
+    hidden: false
+  ) {
+    id
+    key
+    count
+    commandCount
+    beaconIds
+    connectionBeaconIds
+    commandGroupIds
+    linkIds
+    commandGroups {
+      id
+      commandIds
+      beaconIds
+      minDate
+      maxDate
+    }
+  }
+}
+```
+
+---
+
+## `searchAnnotations`
+
+Full-text search across annotation text for a campaign.
+
+**Returns:** `[Annotation!]`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to search within.
+</ParamField>
+
+<ParamField path="searchQuery" type="String" required>
+  The search string.
+</ParamField>
+
+<ParamField path="hidden" type="Boolean">
+  Include hidden values. Defaults to `false`.
+</ParamField>
+
+```graphql
+query SearchAnnotations {
+  searchAnnotations(
+    campaignId: "campaign-abc"
+    searchQuery: "lateral movement"
+  ) {
+    id
+    text
+    user
+    date
+    favorite
+    tags {
+      id
+      text
+    }
+  }
+}
+```
+
+---
+
+## `searchCommands`
+
+Full-text search across command input text for a campaign.
+
+**Returns:** `[Command!]`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to search within.
+</ParamField>
+
+<ParamField path="searchQuery" type="String" required>
+  The search string.
+</ParamField>
+
+<ParamField path="hidden" type="Boolean">
+  Include hidden values. Defaults to `false`.
+</ParamField>
+
+```graphql
+query SearchCommands {
+  searchCommands(
+    campaignId: "campaign-abc"
+    searchQuery: "mimikatz"
+  ) {
+    id
+    inputText
+    commandFailed
+    beacon {
+      id
+      beaconName
+    }
+    operator {
+      id
+      name
+    }
+  }
+}
+```
+
+---
+
+## `servers`
+
+Fetch all C2 servers for a campaign.
+
+**Returns:** `[Server]`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to retrieve servers for.
+</ParamField>
+
+<ParamField path="hidden" type="Boolean">
+  Include hidden servers. Defaults to `false`.
+</ParamField>
+
+<ParamField path="username" type="String" required>
+  The current operator username.
+</ParamField>
+
+```graphql
+query GetServers {
+  servers(campaignId: "campaign-abc", hidden: false, username: "operator1") {
+    id
+    name
+    displayName
+    hidden
+    beaconCount
+    commandsCount
+    commentCount
+    logsCount
+    meta {
+      id
+      type
+      color
+      shape
+    }
+    beacons {
+      id
+      beaconName
+    }
+  }
+}
+```
+
+---
+
+## `tags`
+
+Fetch all tags used in annotations for a campaign.
+
+**Returns:** `[Tag]`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to retrieve tags for.
+</ParamField>
+
+```graphql
+query GetTags {
+  tags(campaignId: "campaign-abc") {
+    id
+    text
+    commandsCount
+    commentCount
+  }
+}
+```
+
+---
+
+## `timeline`
+
+Fetch a bucketed summary of active beacons and links with commands over time.
+
+**Returns:** `Timeline!`
+
+<ParamField path="campaignId" type="String" required>
+  The campaign to retrieve timeline data for.
+</ParamField>
+
+<ParamField path="hidden" type="Boolean">
+  Include hidden entities. Defaults to `false`.
+</ParamField>
+
+<ParamField path="suggestedBuckets" type="Float">
+  Hint for how many time buckets to generate. Defaults to `100`.
+</ParamField>
+
+<ParamField path="suggestedStartTime" type="DateTime">
+  Start time for the timeline window. Defaults to epoch.
+</ParamField>
+
+<ParamField path="suggestedEndTime" type="DateTime">
+  End time for the timeline window. Defaults to max date.
+</ParamField>
+
+```graphql
+query GetTimeline {
+  timeline(
+    campaignId: "campaign-abc"
+    hidden: false
+    suggestedBuckets: 50
+  ) {
+    bucketMinutes
+    bucketStartTime
+    bucketEndTime
+    campaignStartTime
+    campaignEndTime
+    buckets {
+      bucketStartTime
+      bucketEndTime
+      activeBeacons
+      createdBeacons
+      dyingBeacons
+      deadBeacons
+      activeLinks
+      createdLinks
+      dyingLinks
+      deadLinks
+      beaconCommandCountPair {
+        beaconId
+        commandCount
+      }
+    }
+  }
+}
+```
+
+---
+
+## Additional queries
+
+The following queries are also available for lower-level log access:
+
+| Query | Description |
+|-------|-------------|
+| `logs(campaignId, beaconId?, hostId?)` | Fetch raw log entries, optionally filtered by beacon or host. |
+| `logsByBeaconId(campaignId, beaconId)` | Fetch all log entries for a beacon in time order, reconstructing the full beacon log. |
+| `logFilesByBeaconId(campaignId, beaconId)` | Fetch the list of log file names associated with a beacon. |
+| `parsingProgress` | Fetch the current parsing progress across all servers. |

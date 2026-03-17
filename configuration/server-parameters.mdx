@@ -1,0 +1,144 @@
+---
+title: "Server Parameters"
+description: "CLI flags and configuration schema fields for the RedEye server binary."
+---
+
+RedEye accepts configuration through two mechanisms: **CLI flags** passed directly to the binary, and a **`config.json` file** placed in the same directory as the binary. CLI flags always take precedence over the config file.
+
+Run `./RedEye -h` to display the full help output.
+
+## CLI Flags
+
+<ParamField path="-r, --redTeam" type="boolean">
+  Run the server in Red Team mode. Enables the full feature set: uploading C2 logs, exploring data, and creating presentations. A password must also be provided when running in Red Team mode.
+
+  ```bash
+  ./RedEye --redTeam --password <your_password>
+  ```
+</ParamField>
+
+<ParamField path="-p, --password" type="string">
+  The password for user authentication. Required when running in Red Team mode.
+
+  ```bash
+  ./RedEye --redTeam --password mysecretpassword
+  ```
+</ParamField>
+
+<ParamField path="--port" type="number" default="4000">
+  The port the server should be exposed at. Defaults to `4000`.
+
+  ```bash
+  ./RedEye --port 8080
+  ```
+</ParamField>
+
+<ParamField path="--parsers" type="string[]">
+  A list of parser binary names to use, or a flag to use all parsers found in the `parsers` folder. Parser binaries must be located in the `parsers` folder next to the `RedEye` binary.
+
+  ```bash
+  # Use specific parsers
+  ./RedEye --parsers cobalt-strike-parser brute-ratel-parser
+
+  # Use all parsers in the parsers folder
+  ./RedEye --parsers true
+  ```
+</ParamField>
+
+<ParamField path="-t, --childProcesses" type="number" default="8">
+  Maximum number of child processes the parser can use. Defaults to `8`.
+
+  ```bash
+  ./RedEye --childProcesses 4
+  ```
+</ParamField>
+
+<ParamField path="-d, --developmentMode" type="boolean">
+  Put the database and server in development mode.
+
+  ```bash
+  ./RedEye --developmentMode
+  ```
+</ParamField>
+
+<ParamField path="-h, --help" type="boolean">
+  Display help for command.
+
+  ```bash
+  ./RedEye --help
+  ```
+</ParamField>
+
+---
+
+## Config Schema Fields
+
+These fields are available in both the `config.json` file and map to their equivalent CLI flags. See [Config File](/configuration/config-file) for file placement and format details.
+
+<ParamField body="redTeam" type="boolean" default="false">
+  Run the server in Red Team mode. Corresponds to the `-r, --redTeam` CLI flag.
+</ParamField>
+
+<ParamField body="password" type="string">
+  The password for user authentication. Required when `redTeam` is `true`. Corresponds to `-p, --password`.
+</ParamField>
+
+<ParamField body="port" type="integer" default="4000">
+  The port the server should be exposed at. Must be greater than `0`. Corresponds to `--port`.
+</ParamField>
+
+<ParamField body="parsers" type="boolean | string[]">
+  Either a boolean flag to enable/disable all parsers in the `parsers` folder, or an array of specific parser binary names to use.
+
+  ```json5
+  // Use all parsers
+  { "parsers": true }
+
+  // Use specific parsers
+  { "parsers": ["cobalt-strike-parser", "brute-ratel-parser"] }
+
+  // Disable parsers
+  { "parsers": false }
+  ```
+</ParamField>
+
+<ParamField body="maxParserSubprocesses" type="integer" default="8">
+  Maximum number of child processes the parser can use. Must be greater than `0`. Corresponds to `-t, --childProcesses`.
+</ParamField>
+
+<ParamField body="production" type="boolean" default="true">
+  Whether the server is running in production mode.
+</ParamField>
+
+<ParamField body="databaseMode" type="string" default="PRODUCTION">
+  Controls database behavior. One of:
+
+  | Value | Description |
+  |---|---|
+  | `PRODUCTION` | Standard production database behavior |
+  | `DEV_PERSIST` | Development mode; database persists between restarts |
+  | `DEV_CLEAN` | Development mode; database is wiped on each restart |
+</ParamField>
+
+<ParamField body="secret" type="string">
+  The secret used for signing session tokens. Defaults to a built-in UUID. Set this to a custom value in production deployments.
+</ParamField>
+
+<ParamField body="clientPort" type="integer" default="3500">
+  The port the client dev server runs on. This is purely informational and not used in production.
+</ParamField>
+
+---
+
+## Example Usage
+
+```bash
+# Blue Team mode (default) — no password required
+./RedEye
+
+# Red Team mode with password and custom port
+./RedEye --redTeam --password mysecretpassword --port 8080
+
+# Red Team mode with specific parsers and limited subprocesses
+./RedEye --redTeam --password mysecretpassword --parsers cobalt-strike-parser --childProcesses 4
+```

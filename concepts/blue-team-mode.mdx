@@ -1,0 +1,89 @@
+---
+title: "Blue Team mode"
+description: "Read-only default mode for reviewing curated campaign data exported by a Red Team."
+---
+
+Blue Team mode is the default operating mode of RedEye. It provides a simplified, read-only UI for viewing campaign data that has been curated, annotated, and exported by a Red Team as a `.redeye` file.
+
+<Note>
+  Both Red Team mode and Blue Team mode run from the same `RedEye` application binary. No separate download is needed.
+</Note>
+
+## What Blue Team mode provides
+
+- View the interactive graph of hosts, beacons, and C2 servers.
+- Navigate the Explorer tabs: Hosts, Operators, Comments, Beacons, and Command Types.
+- Step through Red Team presentations built from tagged comments.
+- Use full-text search across beacons, hosts, operators, commands, and tags.
+- Filter the timeline to replay campaign activity chronologically.
+
+## Limitations compared to Red Team mode
+
+| Capability | Red Team mode | Blue Team mode |
+|---|---|---|
+| Upload raw C2 logs (Cobalt Strike, Brute Ratel) | Yes | No |
+| Add or edit comments and tags | Yes | No |
+| Rename or delete campaigns | Yes | No |
+| Export campaigns | Yes | No |
+| Anonymize data | Yes | No |
+| Upload `.redeye` files | Yes | Yes |
+| View campaign graph and data | Yes | Yes |
+| View presentations | Yes | Yes |
+| Password-protected authentication | Required | Not required |
+
+## Starting Blue Team mode
+
+Blue Team mode is the default — no flags are needed:
+
+```bash
+./RedEye
+```
+
+Or simply double-click the `RedEye` executable in your file manager. RedEye starts a local server at `http://127.0.0.1:4000` and opens your default browser automatically.
+
+<Info>
+  Close the terminal window (or the process) to stop the RedEye server.
+</Info>
+
+## Blue Team presentation handoff
+
+After a Red Team finishes annotating a campaign, they export it as a `.redeye` file and hand it off to the Blue Team. There are two ways to deliver the files.
+
+### Option 1: Campaigns folder (auto-load)
+
+Place the `RedEye` binary and a `campaigns/` folder together in the same directory. RedEye automatically imports any `.redeye` files it finds in that folder at startup.
+
+```
+Folder/
+    RedEye
+    campaigns/
+        Campaign-01.redeye
+        Campaign-02.redeye
+```
+
+<Steps>
+  <Step title="Copy the binary">
+    Copy the `RedEye` application binary into an empty folder.
+  </Step>
+  <Step title="Create the campaigns folder">
+    Create a `campaigns/` subfolder in the same directory as the binary.
+  </Step>
+  <Step title="Place .redeye files">
+    Copy the exported `.redeye` campaign files into the `campaigns/` folder.
+  </Step>
+  <Step title="Run RedEye">
+    Double-click `RedEye` or run `./RedEye` in a terminal. The campaigns load automatically.
+  </Step>
+</Steps>
+
+### Option 2: Upload via the UI
+
+`.redeye` files can also be uploaded manually after starting RedEye:
+
+1. Open RedEye in a browser at `http://127.0.0.1:4000`.
+2. On the Campaign Cards screen, click **+ Add Campaign**.
+3. Select the `.redeye` file upload option and choose your file.
+
+<Tip>
+  Use the campaigns folder approach when delivering a package to a Blue Team that may not be familiar with the upload workflow. It requires no interaction beyond launching the binary.
+</Tip>
