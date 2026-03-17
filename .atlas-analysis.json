@@ -1,0 +1,135 @@
+{
+  "projectType": "saas",
+  "projectName": "RedEye",
+  "projectDescription": "RedEye is an open-source visual analytic tool developed by CISA and PNNL that helps Red Teams visualize, annotate, and present C2 command-and-control log data, and enables Blue Teams to review exported campaign findings.",
+  "theme": "aspen",
+  "primaryColor": "#C41E3A",
+  "lightColor": "#FF4D6A",
+  "darkColor": "#8B0000",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/red-team-mode",
+              "concepts/blue-team-mode",
+              "concepts/campaigns",
+              "concepts/beacons-and-hosts"
+            ]
+          },
+          {
+            "group": "Using RedEye",
+            "pages": [
+              "guides/uploading-campaigns",
+              "guides/explorer",
+              "guides/graph-visualization",
+              "guides/timeline",
+              "guides/comments-and-tags",
+              "guides/search",
+              "guides/presentations",
+              "guides/exporting-campaigns"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/server-parameters",
+              "configuration/config-file",
+              "configuration/docker"
+            ]
+          },
+          {
+            "group": "Development",
+            "pages": [
+              "development/local-build",
+              "development/contributing",
+              "development/platform-support"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Parser Guide",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "parsers/parser-overview",
+              "parsers/built-in-parsers"
+            ]
+          },
+          {
+            "group": "Building a Parser",
+            "pages": [
+              "parsers/creating-a-parser",
+              "parsers/info-command",
+              "parsers/parse-campaign-command",
+              "parsers/parser-output-schema"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "GraphQL API",
+            "pages": [
+              "api/graphql-overview",
+              "api/queries",
+              "api/mutations",
+              "api/types"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Visual graph visualization of C2 beacons, hosts, and teamservers",
+    "Red Team mode for importing and annotating Cobalt Strike, Brute Ratel, and Sliver logs",
+    "Blue Team mode for reviewing curated and exported campaign data in read-only view",
+    "Timeline scrubber to replay attack activities chronologically",
+    "Full-text search across beacons, hosts, operators, commands, and tags",
+    "MITRE ATT&CK technique tagging and annotation on commands",
+    "Presentation mode to create slideshow-style reports from annotated comments",
+    "Campaign export and anonymization for Blue Team handoff",
+    "Extensible custom parser system supporting any C2 framework",
+    "Docker and cross-platform binary deployment (Linux, macOS, Windows)"
+  ],
+  "publicApiSurface": [
+    "GraphQL Query: campaigns",
+    "GraphQL Query: campaign(campaignId)",
+    "GraphQL Query: beacons(campaignId, hidden)",
+    "GraphQL Query: hosts(campaignId)",
+    "GraphQL Query: annotations(campaignId)",
+    "GraphQL Query: commandGroups(campaignId, ...filters)",
+    "GraphQL Query: servers(campaignId)",
+    "GraphQL Query: operators(campaignId)",
+    "GraphQL Query: timeline(campaignId)",
+    "GraphQL Query: presentations(campaignId)",
+    "GraphQL Mutation: createCampaign(creatorName, name, parser)",
+    "GraphQL Mutation: deleteCampaign(campaignId)",
+    "GraphQL Mutation: renameCampaign(campaignId, name)",
+    "GraphQL Mutation: addCommandGroupAnnotation(campaignId, commandIds, tags, text, user)",
+    "GraphQL Mutation: updateAnnotation(annotationId, campaignId, ...)",
+    "GraphQL Mutation: deleteAnnotation(annotationId, campaignId)",
+    "GraphQL Mutation: toggleBeaconHidden(campaignId, beaconId, setHidden)",
+    "GraphQL Mutation: anonymizeCampaign(campaignId, anonymizeOptions)",
+    "GraphQL Mutation: updateBeaconMetadata(beaconId, campaignId, ...)",
+    "GraphQL Mutation: updateHostMetadata(hostId, campaignId, ...)",
+    "Parser CLI: <parser-name> info",
+    "Parser CLI: <parser-name> parse-campaign --folder <path>"
+  ]
+}
